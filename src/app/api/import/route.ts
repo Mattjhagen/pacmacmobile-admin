@@ -94,7 +94,7 @@ function parseCSV(csvContent: string): Record<string, unknown>[] {
     throw new Error(`CSV parsing errors: ${result.errors.map(e => e.message).join(', ')}`)
   }
   
-  return result.data
+  return result.data as Record<string, unknown>[]
 }
 
 // Function to parse Excel data
@@ -102,7 +102,7 @@ function parseExcel(buffer: Buffer): Record<string, unknown>[] {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
   const sheetName = workbook.SheetNames[0]
   const worksheet = workbook.Sheets[sheetName]
-  return XLSX.utils.sheet_to_json(worksheet)
+  return XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[]
 }
 
 export async function POST(request: NextRequest) {
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
               price: product.price,
               description: product.description,
               imageUrl: product.imageUrl,
-              specs: product.specs,
+              specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
               inStock: product.inStock,
               stockCount: product.stockCount
             }
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
               price: product.price,
               description: product.description,
               imageUrl: product.imageUrl,
-              specs: product.specs,
+              specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
               inStock: product.inStock,
               stockCount: product.stockCount,
               category: product.category

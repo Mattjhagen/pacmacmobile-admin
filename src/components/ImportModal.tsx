@@ -330,7 +330,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
                 <div className="bg-gray-50 border border-gray-200 rounded-md p-3 max-h-40 overflow-y-auto">
                   <ul className="text-sm text-gray-700 space-y-1">
                     {importResult.products.slice(0, 10).map((product, index) => (
-                      <li key={index}>• {product.brand} {product.model} - ${product.price}</li>
+                      <li key={index}>• {String(product.brand)} {String(product.model)} - ${String(product.price)}</li>
                     ))}
                     {importResult.products.length > 10 && (
                       <li className="text-gray-500">... and {importResult.products.length - 10} more</li>

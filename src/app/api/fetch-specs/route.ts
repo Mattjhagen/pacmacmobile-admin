@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       
       if (fetchedSpecs && Object.keys(fetchedSpecs).length > 0) {
         // Merge with existing specs
-        const mergedSpecs = { ...product.specs, ...fetchedSpecs }
+        const mergedSpecs = { ...(product.specs as Record<string, unknown> || {}), ...fetchedSpecs }
         
         // Generate description if missing or update if specs changed significantly
         let description = product.description

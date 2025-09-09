@@ -161,15 +161,16 @@ async function searchGenericProductImages(brand: string, model: string, productN
 }
 
 // Search stock photo services
-async function searchStockPhotos(brand: string, model: string): Promise<string | null> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function searchStockPhotos(_brand: string, _model: string): Promise<string | null> {
   // This would typically use APIs like Unsplash, Pexels, etc.
   // For now, we'll use a simple approach with common stock photo patterns
   
-  const stockQueries = [
-    `${brand} ${model} phone`,
-    `${brand} smartphone`,
-    `${model} mobile phone`
-  ]
+  // const stockQueries = [
+  //   `${brand} ${model} phone`,
+  //   `${brand} smartphone`,
+  //   `${model} mobile phone`
+  // ]
 
   // In a real implementation, you would use the actual APIs
   // For now, return null as this requires API keys

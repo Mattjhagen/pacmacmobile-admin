@@ -57,14 +57,14 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         price: product.price.toString(),
         description: product.description || '',
         imageUrl: product.imageUrl || '',
-        specs: product.specs || {
-          display: '',
-          processor: '',
-          memory: '',
-          storage: '',
-          camera: '',
-          battery: '',
-          os: ''
+        specs: {
+          display: (product.specs as Record<string, unknown>)?.display as string || '',
+          processor: (product.specs as Record<string, unknown>)?.processor as string || '',
+          memory: (product.specs as Record<string, unknown>)?.memory as string || '',
+          storage: (product.specs as Record<string, unknown>)?.storage as string || '',
+          camera: (product.specs as Record<string, unknown>)?.camera as string || '',
+          battery: (product.specs as Record<string, unknown>)?.battery as string || '',
+          os: (product.specs as Record<string, unknown>)?.os as string || ''
         },
         inStock: product.inStock,
         stockCount: product.stockCount.toString(),

@@ -40,6 +40,10 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
     })
   }
 
+  const getSpecValue = (specs: Record<string, unknown>, key: string): string | null => {
+    return specs && key in specs && specs[key] ? String(specs[key]) : null
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       {/* Product Image */}
@@ -107,19 +111,19 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
           <div className="mb-4">
             <h4 className="text-sm font-medium text-gray-900 mb-2">Key Specs:</h4>
             <div className="space-y-1">
-              {product.specs.display && (
+              {getSpecValue(product.specs || {}, 'display') && (
                 <p className="text-xs text-gray-600">
-                  <span className="font-medium">Display:</span> {product.specs.display}
+                  <span className="font-medium">Display:</span> {getSpecValue(product.specs || {}, 'display')}
                 </p>
               )}
-              {product.specs.processor && (
+              {getSpecValue(product.specs || {}, 'processor') && (
                 <p className="text-xs text-gray-600">
-                  <span className="font-medium">Processor:</span> {product.specs.processor}
+                  <span className="font-medium">Processor:</span> {getSpecValue(product.specs || {}, 'processor')}
                 </p>
               )}
-              {product.specs.storage && (
+              {getSpecValue(product.specs || {}, 'storage') && (
                 <p className="text-xs text-gray-600">
-                  <span className="font-medium">Storage:</span> {product.specs.storage}
+                  <span className="font-medium">Storage:</span> {getSpecValue(product.specs || {}, 'storage')}
                 </p>
               )}
             </div>
