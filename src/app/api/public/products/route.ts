@@ -42,8 +42,8 @@ export async function GET() {
         product.brand,
         product.model,
         product.category,
-        ...(product.specs?.storage ? [product.specs.storage as string] : []),
-        ...(product.specs?.memory ? [product.specs.memory as string] : [])
+        ...(product.specs && typeof product.specs === 'object' && 'storage' in product.specs ? [String(product.specs.storage)] : []),
+        ...(product.specs && typeof product.specs === 'object' && 'memory' in product.specs ? [String(product.specs.memory)] : [])
       ].filter(Boolean)
     }))
 
