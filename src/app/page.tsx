@@ -1,6 +1,8 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
@@ -23,11 +25,11 @@ interface Product {
 }
 
 export default function AdminDashboard() {
+  const { data: session, status } = useSession();
   const [products, setProducts] = useState<Product[]>([])
   const [showForm, setShowForm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [loading, setLoading] = useState(true)
   const [fetchingImages, setFetchingImages] = useState(false)
   const [fetchingSpecs, setFetchingSpecs] = useState(false)
 
@@ -42,14 +44,14 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error fetching products:', error)
       setProducts([]) // Set empty array on error
-    } finally {
-      setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (status === 'authenticated') {
+      fetchProducts()
+    }
+  }, [status])
 
   const handleProductCreated = () => {
     setShowForm(false)
@@ -160,12 +162,29 @@ export default function AdminDashboard() {
     }
   }
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading products...</p>
+          <p className="mt-4 text-gray-600">Loading session...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900">Admin Portal</h1>
+          <p className="mt-2 text-gray-600">Please sign in to manage your inventory.</p>
+          <button
+            onClick={() => signIn('github')}
+            className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign in with GitHub
+          </button>
         </div>
       </div>
     )
@@ -179,9 +198,18 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-              <p className="text-gray-600">Manage your phone inventory</p>
+              <p className="text-gray-600">Welcome, {session?.user?.name}. Manage your phone inventory.</p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => signOut()}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3 py-4 border-t border-gray-200">
               <button
                 onClick={() => setShowImportModal(true)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -221,7 +249,6 @@ export default function AdminDashboard() {
                 Add Product
               </button>
             </div>
-          </div>
         </div>
       </header>
 
