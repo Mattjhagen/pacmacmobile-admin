@@ -13,6 +13,10 @@ interface PhoneSpecs {
   camera?: string
   battery?: string
   os?: string
+  condition?: string
+  carrier?: string
+  lockStatus?: string
+  modelNumber?: string
 }
 
 interface ImportProduct {
@@ -46,16 +50,9 @@ async function getProductImage(brand: string, model: string, productName?: strin
 // Function to map wesellcellular data to our product schema
 function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
   // More comprehensive field mappings for wesellcellular
-  const brand = String(
-    row.Brand || row.brand || row.Manufacturer || row.manufacturer || 
-    row.Make || row.make || row.Vendor || row.vendor || ''
-  )
+  const brand = String(row.Manufacturer || '')
   
-  const model = String(
-    row.Model || row.model || row.Product_Name || row.product_name || 
-    row.ProductName || row.productName || row.Device || row.device || 
-    row.Item || row.item || ''
-  )
+  const model = String(row.Model || '')
   
   const name = String(
     row.Product_Name || row.product_name || row.ProductName || row.productName ||
@@ -63,32 +60,15 @@ function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
     `${brand} ${model}`.trim()
   )
   
-  const price = parseFloat(String(
-    row.Price || row.price || row.Cost || row.cost || 
-    row.Sale_Price || row.sale_price || row.SalePrice || row.salePrice ||
-    row.Retail || row.retail || row.MSRP || row.msrp || '0'
-  ))
+  const price = parseFloat(String(row['List Price'] || 0))
   
-  const stockCount = parseInt(String(
-    row.Stock || row.stock || row.Quantity || row.quantity || 
-    row.Qty || row.qty || row.Available || row.available || 
-    row.In_Stock || row.in_stock || row.InStock || row.inStock || '0'
-  ))
+  const stockCount = parseInt(String(row['Quantity Available'] || 0))
   
-  const sku = String(
-    row.SKU || row.sku || row.Item_Code || row.item_code || 
-    row.ItemCode || row.itemCode || row.Part_Number || row.part_number ||
-    row.PartNumber || row.partNumber || row.ID || row.id || ''
-  )
+  const sku = String(row['Item #'] || '')
   
-  const color = String(
-    row.Color || row.color || row.Colour || row.colour || ''
-  )
+  const color = String(row.Color || '')
   
-  const storage = String(
-    row.Storage || row.storage || row.Capacity || row.capacity || 
-    row.GB || row.gb || row.Memory_Size || row.memory_size || ''
-  )
+  const storage = String(row.Capacity || '')
 
   // Build specs object
   const specs: PhoneSpecs = {}
@@ -111,6 +91,23 @@ function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
     specs.os = String(row.OS || row.os || row.Operating_System || row.operating_system)
   }
   if (storage) specs.storage = storage
+  
+  // Add wesellcellular-specific fields
+  if (row.Grade) {
+    specs.condition = String(row.Grade)
+  }
+  
+  if (row.Carrier) {
+    specs.carrier = String(row.Carrier)
+  }
+  
+  if (row['Lock Status']) {
+    specs.lockStatus = String(row['Lock Status'])
+  }
+  
+  if (row['Model Number']) {
+    specs.modelNumber = String(row['Model Number'])
+  }
 
   return {
     name: name.trim(),
