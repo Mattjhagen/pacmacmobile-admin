@@ -45,24 +45,71 @@ async function getProductImage(brand: string, model: string, productName?: strin
 
 // Function to map wesellcellular data to our product schema
 function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
-  // Common field mappings for wesellcellular
-  const brand = String(row.Brand || row.brand || row.Manufacturer || row.manufacturer || '')
-  const model = String(row.Model || row.model || row.Product_Name || row.product_name || '')
-  const name = String(row.Product_Name || row.product_name || row.Name || row.name || `${brand} ${model}`)
-  const price = parseFloat(String(row.Price || row.price || row.Cost || row.cost || '0'))
-  const stockCount = parseInt(String(row.Stock || row.stock || row.Quantity || row.quantity || '0'))
-  const sku = String(row.SKU || row.sku || row.Item_Code || row.item_code || '')
-  const color = String(row.Color || row.color || '')
-  const storage = String(row.Storage || row.storage || row.Capacity || row.capacity || '')
+  // More comprehensive field mappings for wesellcellular
+  const brand = String(
+    row.Brand || row.brand || row.Manufacturer || row.manufacturer || 
+    row.Make || row.make || row.Vendor || row.vendor || ''
+  )
+  
+  const model = String(
+    row.Model || row.model || row.Product_Name || row.product_name || 
+    row.ProductName || row.productName || row.Device || row.device || 
+    row.Item || row.item || ''
+  )
+  
+  const name = String(
+    row.Product_Name || row.product_name || row.ProductName || row.productName ||
+    row.Name || row.name || row.Title || row.title || 
+    `${brand} ${model}`.trim()
+  )
+  
+  const price = parseFloat(String(
+    row.Price || row.price || row.Cost || row.cost || 
+    row.Sale_Price || row.sale_price || row.SalePrice || row.salePrice ||
+    row.Retail || row.retail || row.MSRP || row.msrp || '0'
+  ))
+  
+  const stockCount = parseInt(String(
+    row.Stock || row.stock || row.Quantity || row.quantity || 
+    row.Qty || row.qty || row.Available || row.available || 
+    row.In_Stock || row.in_stock || row.InStock || row.inStock || '0'
+  ))
+  
+  const sku = String(
+    row.SKU || row.sku || row.Item_Code || row.item_code || 
+    row.ItemCode || row.itemCode || row.Part_Number || row.part_number ||
+    row.PartNumber || row.partNumber || row.ID || row.id || ''
+  )
+  
+  const color = String(
+    row.Color || row.color || row.Colour || row.colour || ''
+  )
+  
+  const storage = String(
+    row.Storage || row.storage || row.Capacity || row.capacity || 
+    row.GB || row.gb || row.Memory_Size || row.memory_size || ''
+  )
 
   // Build specs object
   const specs: PhoneSpecs = {}
-  if (row.Display) specs.display = String(row.Display)
-  if (row.Processor) specs.processor = String(row.Processor)
-  if (row.Memory) specs.memory = String(row.Memory)
-  if (row.Camera) specs.camera = String(row.Camera)
-  if (row.Battery) specs.battery = String(row.Battery)
-  if (row.OS) specs.os = String(row.OS)
+  if (row.Display || row.display || row.Screen || row.screen) {
+    specs.display = String(row.Display || row.display || row.Screen || row.screen)
+  }
+  if (row.Processor || row.processor || row.CPU || row.cpu) {
+    specs.processor = String(row.Processor || row.processor || row.CPU || row.cpu)
+  }
+  if (row.Memory || row.memory || row.RAM || row.ram) {
+    specs.memory = String(row.Memory || row.memory || row.RAM || row.ram)
+  }
+  if (row.Camera || row.camera) {
+    specs.camera = String(row.Camera || row.camera)
+  }
+  if (row.Battery || row.battery) {
+    specs.battery = String(row.Battery || row.battery)
+  }
+  if (row.OS || row.os || row.Operating_System || row.operating_system) {
+    specs.os = String(row.OS || row.os || row.Operating_System || row.operating_system)
+  }
   if (storage) specs.storage = storage
 
   return {
@@ -71,7 +118,10 @@ function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
     model: model.trim(),
     price,
     description: String(row.Description || row.description || ''),
-    imageUrl: String(row.Image_URL || row.image_url || ''),
+    imageUrl: String(
+      row.Image_URL || row.image_url || row.ImageURL || row.imageURL ||
+      row.Image || row.image || row.Picture || row.picture || ''
+    ),
     specs: Object.keys(specs).length > 0 ? specs : undefined,
     inStock: stockCount > 0,
     stockCount,
@@ -133,6 +183,16 @@ export async function POST(request: NextRequest) {
         { error: 'Unsupported file format. Please upload CSV or Excel files.' },
         { status: 400 }
       )
+    }
+
+    // Debug: Log the first few rows and column names
+    console.log('File parsed successfully. Rows:', rawData.length)
+    if (rawData.length > 0) {
+      console.log('Column names:', Object.keys(rawData[0]))
+      console.log('First row sample:', rawData[0])
+      if (rawData.length > 1) {
+        console.log('Second row sample:', rawData[1])
+      }
     }
 
     if (rawData.length === 0) {
