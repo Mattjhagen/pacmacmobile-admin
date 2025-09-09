@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['puppeteer']
-  },
+  serverExternalPackages: ['puppeteer'],
   images: {
     domains: [
       'images.unsplash.com',

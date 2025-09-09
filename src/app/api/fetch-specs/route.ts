@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const productsToFetch = products.map(product => ({
       brand: product.brand,
       model: product.model,
-      specs: product.specs as any
+      specs: product.specs as Record<string, unknown>
     }))
 
     // Fetch specifications in batch

@@ -5,6 +5,16 @@ import * as XLSX from 'xlsx'
 import { fetchProductImage } from '@/lib/imageFetcher'
 import { fetchPhoneSpecs, generateDescriptionFromSpecs } from '@/lib/specsFetcher'
 
+interface PhoneSpecs {
+  display?: string
+  processor?: string
+  memory?: string
+  storage?: string
+  camera?: string
+  battery?: string
+  os?: string
+}
+
 interface ImportProduct {
   name: string
   brand: string
@@ -12,7 +22,7 @@ interface ImportProduct {
   price: number
   description?: string
   imageUrl?: string
-  specs?: any
+  specs?: PhoneSpecs
   inStock: boolean
   stockCount: number
   category: string
@@ -34,25 +44,25 @@ async function getProductImage(brand: string, model: string, productName?: strin
 }
 
 // Function to map wesellcellular data to our product schema
-function mapWesellCellularData(row: any): ImportProduct {
+function mapWesellCellularData(row: Record<string, unknown>): ImportProduct {
   // Common field mappings for wesellcellular
-  const brand = row.Brand || row.brand || row.Manufacturer || row.manufacturer || ''
-  const model = row.Model || row.model || row.Product_Name || row.product_name || ''
-  const name = row.Product_Name || row.product_name || row.Name || row.name || `${brand} ${model}`
-  const price = parseFloat(row.Price || row.price || row.Cost || row.cost || '0')
-  const stockCount = parseInt(row.Stock || row.stock || row.Quantity || row.quantity || '0')
-  const sku = row.SKU || row.sku || row.Item_Code || row.item_code || ''
-  const color = row.Color || row.color || ''
-  const storage = row.Storage || row.storage || row.Capacity || row.capacity || ''
+  const brand = String(row.Brand || row.brand || row.Manufacturer || row.manufacturer || '')
+  const model = String(row.Model || row.model || row.Product_Name || row.product_name || '')
+  const name = String(row.Product_Name || row.product_name || row.Name || row.name || `${brand} ${model}`)
+  const price = parseFloat(String(row.Price || row.price || row.Cost || row.cost || '0'))
+  const stockCount = parseInt(String(row.Stock || row.stock || row.Quantity || row.quantity || '0'))
+  const sku = String(row.SKU || row.sku || row.Item_Code || row.item_code || '')
+  const color = String(row.Color || row.color || '')
+  const storage = String(row.Storage || row.storage || row.Capacity || row.capacity || '')
 
   // Build specs object
-  const specs: any = {}
-  if (row.Display) specs.display = row.Display
-  if (row.Processor) specs.processor = row.Processor
-  if (row.Memory) specs.memory = row.Memory
-  if (row.Camera) specs.camera = row.Camera
-  if (row.Battery) specs.battery = row.Battery
-  if (row.OS) specs.os = row.OS
+  const specs: PhoneSpecs = {}
+  if (row.Display) specs.display = String(row.Display)
+  if (row.Processor) specs.processor = String(row.Processor)
+  if (row.Memory) specs.memory = String(row.Memory)
+  if (row.Camera) specs.camera = String(row.Camera)
+  if (row.Battery) specs.battery = String(row.Battery)
+  if (row.OS) specs.os = String(row.OS)
   if (storage) specs.storage = storage
 
   return {
@@ -60,8 +70,8 @@ function mapWesellCellularData(row: any): ImportProduct {
     brand: brand.trim(),
     model: model.trim(),
     price,
-    description: row.Description || row.description || '',
-    imageUrl: row.Image_URL || row.image_url || '',
+    description: String(row.Description || row.description || ''),
+    imageUrl: String(row.Image_URL || row.image_url || ''),
     specs: Object.keys(specs).length > 0 ? specs : undefined,
     inStock: stockCount > 0,
     stockCount,
@@ -73,7 +83,7 @@ function mapWesellCellularData(row: any): ImportProduct {
 }
 
 // Function to parse CSV data
-function parseCSV(csvContent: string): any[] {
+function parseCSV(csvContent: string): Record<string, unknown>[] {
   const result = Papa.parse(csvContent, {
     header: true,
     skipEmptyLines: true,
@@ -88,7 +98,7 @@ function parseCSV(csvContent: string): any[] {
 }
 
 // Function to parse Excel data
-function parseExcel(buffer: Buffer): any[] {
+function parseExcel(buffer: Buffer): Record<string, unknown>[] {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
   const sheetName = workbook.SheetNames[0]
   const worksheet = workbook.Sheets[sheetName]
@@ -110,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    let rawData: any[] = []
+    let rawData: Record<string, unknown>[] = []
     
     // Parse file based on extension
     const fileName = file.name.toLowerCase()

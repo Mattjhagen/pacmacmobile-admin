@@ -1,11 +1,11 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 
-interface ImageSearchResult {
-  url: string
-  title: string
-  source: string
-}
+// interface ImageSearchResult {
+//   url: string
+//   title: string
+//   source: string
+// }
 
 // OEM website configurations
 const OEM_WEBSITES = {
@@ -169,13 +169,6 @@ async function searchStockPhotos(brand: string, model: string): Promise<string |
     `${brand} ${model} phone`,
     `${brand} smartphone`,
     `${model} mobile phone`
-  ]
-
-  // Try common stock photo URLs (this is a simplified approach)
-  const stockPhotoPatterns = [
-    'https://images.unsplash.com',
-    'https://cdn.pixabay.com',
-    'https://images.pexels.com'
   ]
 
   // In a real implementation, you would use the actual APIs

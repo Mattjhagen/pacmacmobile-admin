@@ -107,14 +107,14 @@ export async function fetchPhoneSpecs(
 
 async function searchSpecSource(
   sourceName: string, 
-  source: any, 
+  source: Record<string, unknown>, 
   brand: string, 
   model: string, 
   searchQueries: string[]
 ): Promise<SearchResult | null> {
   for (const query of searchQueries) {
     try {
-      const searchUrl = `${source.baseUrl}${source.searchPath}?s=${encodeURIComponent(query)}`
+      const searchUrl = `${source.baseUrl as string}${source.searchPath as string}?s=${encodeURIComponent(query)}`
       const response = await axios.get(searchUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -127,7 +127,7 @@ async function searchSpecSource(
       let confidence = 0
 
       // Extract specifications using selectors
-      for (const [specType, selector] of Object.entries(source.selectors)) {
+      for (const [specType, selector] of Object.entries(source.selectors as Record<string, string>)) {
         try {
           const element = $(selector).first()
           const text = element.text().trim()
@@ -144,7 +144,7 @@ async function searchSpecSource(
       // Try to find product page link and scrape detailed specs
       const productLink = $('a[href*="' + brand.toLowerCase() + '"]').first().attr('href')
       if (productLink) {
-        const detailedSpecs = await scrapeDetailedSpecs(source.baseUrl + productLink, source.selectors)
+        const detailedSpecs = await scrapeDetailedSpecs((source.baseUrl as string) + productLink, source.selectors as Record<string, string>)
         Object.assign(specs, detailedSpecs)
         confidence += 0.2
       }
@@ -165,7 +165,7 @@ async function searchSpecSource(
   return null
 }
 
-async function scrapeDetailedSpecs(url: string, selectors: any): Promise<PhoneSpecs> {
+async function scrapeDetailedSpecs(url: string, selectors: Record<string, string>): Promise<PhoneSpecs> {
   try {
     const response = await axios.get(url, {
       headers: {

@@ -10,7 +10,7 @@ interface Product {
   price: number
   description?: string
   imageUrl?: string
-  specs?: any
+  specs?: Record<string, unknown>
   inStock: boolean
   stockCount: number
   category: string
@@ -45,6 +45,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
       {/* Product Image */}
       <div className="aspect-w-16 aspect-h-9 bg-gray-200">
         {product.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.imageUrl}
             alt={product.name}

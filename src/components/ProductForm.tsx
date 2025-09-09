@@ -11,7 +11,7 @@ interface Product {
   price: number
   description?: string
   imageUrl?: string
-  specs?: any
+  specs?: Record<string, unknown>
   inStock: boolean
   stockCount: number
   category: string

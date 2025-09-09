@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlusIcon, PencilIcon, TrashIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
 import ImportModal from '@/components/ImportModal'
@@ -14,7 +14,7 @@ interface Product {
   price: number
   description?: string
   imageUrl?: string
-  specs?: any
+  specs?: Record<string, unknown>
   inStock: boolean
   stockCount: number
   category: string

@@ -7,7 +7,7 @@ interface ImportResult {
   success: boolean
   imported: number
   errors: string[]
-  products: any[]
+  products: Record<string, unknown>[]
 }
 
 interface ImportModalProps {
@@ -64,7 +64,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
           products: []
         })
       }
-    } catch (error) {
+    } catch {
       setImportResult({
         success: false,
         imported: 0,
