@@ -7,7 +7,7 @@ To fix the GitHub OAuth 404 issue, you need to set these environment variables i
 ### 1. NextAuth Configuration
 ```
 NEXTAUTH_SECRET=your-secret-key-here
-NEXTAUTH_URL=https://your-app-name.vercel.app
+NEXTAUTH_URL=https://pacmacmobile-admin-git-main-matty-hagens-projects.vercel.app
 ```
 
 ### 2. GitHub OAuth App
@@ -28,8 +28,8 @@ GITHUB_SECRET=your-github-oauth-app-client-secret
 1. Go to GitHub → Settings → Developer settings → OAuth Apps
 2. Create a new OAuth App or edit existing one
 3. Set the following URLs:
-   - **Homepage URL**: `https://your-app-name.vercel.app`
-   - **Authorization callback URL**: `https://your-app-name.vercel.app/api/auth/callback/github`
+   - **Homepage URL**: `https://pacmacmobile-admin-git-main-matty-hagens-projects.vercel.app`
+   - **Authorization callback URL**: `https://pacmacmobile-admin-git-main-matty-hagens-projects.vercel.app/api/auth/callback/github`
 
 ## Generate NEXTAUTH_SECRET
 
@@ -48,7 +48,7 @@ Or use an online generator: https://generate-secret.vercel.app/32
 
 ## Troubleshooting
 
-- Make sure the callback URL in GitHub OAuth app matches exactly: `https://your-app-name.vercel.app/api/auth/callback/github`
+- Make sure the callback URL in GitHub OAuth app matches exactly: `https://pacmacmobile-admin-git-main-matty-hagens-projects.vercel.app/api/auth/callback/github`
 - Ensure all environment variables are set in Vercel
 - Check Vercel function logs for any errors
 - Verify the NEXTAUTH_URL matches your deployed domain
