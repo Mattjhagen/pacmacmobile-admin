@@ -1,31 +1,39 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+
+// Product interface for type safety
+interface Product {
+  id: string
+  name: string
+  brand: string
+  model: string
+  price: number
+  description?: string
+  imageUrl?: string
+  specs?: Record<string, unknown>
+  inStock: boolean
+  stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Simple in-memory storage for products (shared with other routes)
+declare global {
+  var __products: Product[] | undefined
+}
+
+const products = globalThis.__products ?? (globalThis.__products = [])
 
 // GET /api/public/products - Public endpoint for main website to fetch products
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        inStock: true, // Only show products that are in stock
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        brand: true,
-        model: true,
-        price: true,
-        description: true,
-        imageUrl: true,
-        specs: true,
-        stockCount: true,
-        category: true,
-        // Don't expose internal fields like createdAt, updatedAt
-      }
-    })
+    // Filter products that are in stock and sort by creation date
+    const inStockProducts = products
+      .filter(product => product.inStock)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     // Transform the data for the main website
-    const publicProducts = products.map(product => ({
+    const publicProducts = inStockProducts.map(product => ({
       id: product.id,
       name: product.name,
       brand: product.brand,

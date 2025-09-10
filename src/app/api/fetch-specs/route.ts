@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { fetchMultipleProductSpecs, generateDescriptionFromSpecs } from '@/lib/specsFetcher'
+
+// Product interface for type safety
+interface Product {
+  id: string
+  name: string
+  brand: string
+  model: string
+  price: number
+  description?: string
+  imageUrl?: string
+  specs?: Record<string, unknown>
+  inStock: boolean
+  stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Simple in-memory storage for products (shared with other routes)
+declare global {
+  var __products: Product[] | undefined
+}
+
+const products = globalThis.__products ?? (globalThis.__products = [])
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,22 +36,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch products from database
-    const products = await prisma.product.findMany({
-      where: {
-        id: { in: productIds }
-      },
-      select: {
-        id: true,
-        brand: true,
-        model: true,
-        name: true,
-        specs: true,
-        description: true
-      }
-    })
+    // Fetch products from in-memory storage
+    const productsToUpdate = products.filter(product => 
+      productIds.includes(product.id)
+    )
 
-    if (products.length === 0) {
+    if (productsToUpdate.length === 0) {
       return NextResponse.json({
         success: true,
         updated: 0,
@@ -37,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare data for specs fetching
-    const productsToFetch = products.map(product => ({
+    const productsToFetch = productsToUpdate.map(product => ({
       brand: product.brand,
       model: product.model,
       specs: product.specs as Record<string, unknown>
@@ -46,9 +59,9 @@ export async function POST(request: NextRequest) {
     // Fetch specifications in batch
     const specsResults = await fetchMultipleProductSpecs(productsToFetch)
 
-    // Update products with fetched specifications
+    // Update products with fetched specifications in memory
     let updatedCount = 0
-    const updatePromises = products.map(async (product) => {
+    productsToUpdate.forEach((product) => {
       const key = `${product.brand}-${product.model}`
       const fetchedSpecs = specsResults.get(key)
       
@@ -62,30 +75,31 @@ export async function POST(request: NextRequest) {
           description = generateDescriptionFromSpecs(mergedSpecs, product.brand, product.model)
         }
 
-        await prisma.product.update({
-          where: { id: product.id },
-          data: { 
+        // Find and update the product in the global array
+        const productIndex = products.findIndex(p => p.id === product.id)
+        if (productIndex !== -1) {
+          products[productIndex] = {
+            ...products[productIndex],
             specs: mergedSpecs,
-            description: description
+            description: description,
+            updatedAt: new Date().toISOString()
           }
-        })
-        updatedCount++
+          updatedCount++
+        }
       }
     })
-
-    await Promise.all(updatePromises)
 
     return NextResponse.json({
       success: true,
       updated: updatedCount,
-      total: products.length,
-      message: `Successfully updated ${updatedCount} out of ${products.length} products with specifications`
+      total: productsToUpdate.length,
+      message: `Successfully updated ${updatedCount} out of ${productsToUpdate.length} products with specifications`
     })
 
   } catch (error) {
     console.error('Error fetching specifications:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch specifications' },
+      { error: 'Failed to fetch specifications', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

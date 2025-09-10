@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import { fetchProductImage } from '@/lib/imageFetcher'
 import { fetchPhoneSpecs, generateDescriptionFromSpecs } from '@/lib/specsFetcher'
+
+// Product interface for type safety
+interface Product {
+  id: string
+  name: string
+  brand: string
+  model: string
+  price: number
+  description?: string
+  imageUrl?: string
+  specs?: Record<string, unknown>
+  inStock: boolean
+  stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Simple in-memory storage for products (shared with other routes)
+declare global {
+  var __products: Product[] | undefined
+}
+
+const products = globalThis.__products ?? (globalThis.__products = [])
 
 interface PhoneSpecs {
   display?: string
@@ -249,42 +272,40 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if product already exists (by name and brand)
-        const existingProduct = await prisma.product.findFirst({
-          where: {
-            name: product.name,
-            brand: product.brand
-          }
-        })
+        const existingProductIndex = products.findIndex(p => 
+          p.name === product.name && p.brand === product.brand
+        )
 
-        if (existingProduct) {
+        if (existingProductIndex !== -1) {
           // Update existing product
-          await prisma.product.update({
-            where: { id: existingProduct.id },
-            data: {
-              price: product.price,
-              description: product.description,
-              imageUrl: product.imageUrl,
-              specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
-              inStock: product.inStock,
-              stockCount: product.stockCount
-            }
-          })
+          products[existingProductIndex] = {
+            ...products[existingProductIndex],
+            price: product.price,
+            description: product.description,
+            imageUrl: product.imageUrl,
+            specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
+            inStock: product.inStock,
+            stockCount: product.stockCount,
+            updatedAt: new Date().toISOString()
+          }
         } else {
           // Create new product
-          await prisma.product.create({
-            data: {
-              name: product.name,
-              brand: product.brand,
-              model: product.model,
-              price: product.price,
-              description: product.description,
-              imageUrl: product.imageUrl,
-              specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
-              inStock: product.inStock,
-              stockCount: product.stockCount,
-              category: product.category
-            }
-          })
+          const newProduct: Product = {
+            id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: product.name,
+            brand: product.brand,
+            model: product.model,
+            price: product.price,
+            description: product.description,
+            imageUrl: product.imageUrl,
+            specs: product.specs ? JSON.parse(JSON.stringify(product.specs)) : null,
+            inStock: product.inStock,
+            stockCount: product.stockCount,
+            category: product.category,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+          products.push(newProduct)
         }
 
         result.imported++
