@@ -736,26 +736,59 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-wrap gap-3 py-4 border-t border-gray-200">
               {/* VERY OBVIOUS TEST BUTTON */}
-              <button
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/test')
-                    const result = await response.json()
-                    alert(`API Test: ${result.success ? 'SUCCESS' : 'FAILED'}\nMessage: ${result.message}`)
-                  } catch (error) {
-                    alert(`API Test FAILED: ${error}`)
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/test')
+                  const result = await response.json()
+                  alert(`API Test: ${result.success ? 'SUCCESS' : 'FAILED'}\nMessage: ${result.message}`)
+                } catch (error) {
+                  alert(`API Test FAILED: ${error}`)
+                }
+              }}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
+              style={{
+                backgroundColor: '#dc2626',
+                border: '4px solid #b91c1c',
+                boxShadow: '0 8px 25px 0 rgba(220, 38, 38, 0.5)',
+                minWidth: '180px'
+              }}
+            >
+              🧪 API TEST
+            </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/fix-missing-scripts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: Missing scripts added to main site!\n\nFiles added:\n- config.js\n- inventory-api.js\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
                   }
-                }}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
-                style={{ 
-                  backgroundColor: '#dc2626', 
-                  border: '4px solid #b91c1c',
-                  boxShadow: '0 8px 25px 0 rgba(220, 38, 38, 0.5)',
-                  minWidth: '180px'
-                }}
-              >
-                🧪 API TEST
-              </button>
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
+              style={{
+                backgroundColor: '#059669',
+                border: '4px solid #047857',
+                boxShadow: '0 8px 25px 0 rgba(5, 150, 105, 0.5)',
+                minWidth: '200px'
+              }}
+            >
+              🔧 FIX MISSING SCRIPTS
+            </button>
               
               <button
                 onClick={() => setShowImportModal(true)}
