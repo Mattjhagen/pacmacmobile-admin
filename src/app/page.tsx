@@ -34,6 +34,43 @@ export default function AdminDashboard() {
   const [fetchingSpecs, setFetchingSpecs] = useState(false)
   const [loginData, setLoginData] = useState({ username: '', password: '' })
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [certValidated, setCertValidated] = useState(false)
+  const [certData, setCertData] = useState({ certKey: '', deviceId: '' })
+
+  // Certificate validation system
+  const validateCertificate = (certKey: string, deviceId: string) => {
+    // Generate a hash of the certificate key and device ID
+    const combinedString = certKey + deviceId + 'PACMAC_SECURE_2024'
+    
+    // Simple hash function (you can make this more sophisticated)
+    let hash = 0
+    for (let i = 0; i < combinedString.length; i++) {
+      const char = combinedString.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    
+    // Check against expected hash (this would be your secret validation)
+    const expectedHash = 1234567890 // Change this to your secret hash
+    const isValid = Math.abs(hash) === expectedHash
+    
+    // Additional validation: check if certKey matches expected pattern
+    const validCertPattern = /^PACMAC-[A-Z0-9]{8}-[A-Z0-9]{8}$/
+    const validDevicePattern = /^DEV-[A-Z0-9]{6}$/
+    
+    return isValid && validCertPattern.test(certKey) && validDevicePattern.test(deviceId)
+  }
+
+  const handleCertValidation = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (validateCertificate(certData.certKey, certData.deviceId)) {
+      setCertValidated(true)
+      setCertData({ certKey: '', deviceId: '' })
+    } else {
+      alert('Invalid security certificate. Access denied.')
+      setCertData({ certKey: '', deviceId: '' })
+    }
+  }
 
   // Simple authentication handler
   const handleSimpleLogin = (e: React.FormEvent) => {
@@ -179,14 +216,70 @@ export default function AdminDashboard() {
     }
   }
 
+  // Certificate validation screen
+  if (!certValidated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h1 className="text-2xl font-bold text-red-800 mb-2">🔒 Security Certificate Required</h1>
+            <p className="text-red-600">Please provide your security certificate to access the admin system.</p>
+          </div>
+          
+          <form onSubmit={handleCertValidation} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Security Certificate Key</label>
+              <input
+                type="text"
+                placeholder="PACMAC-XXXXXXXX-XXXXXXXX"
+                value={certData.certKey}
+                onChange={(e) => setCertData({...certData, certKey: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Device ID</label>
+              <input
+                type="text"
+                placeholder="DEV-XXXXXX"
+                value={certData.deviceId}
+                onChange={(e) => setCertData({...certData, deviceId: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full mt-6 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              🔐 Validate Certificate
+            </button>
+          </form>
+          
+          <div className="mt-6 text-xs text-gray-500">
+            <p>Certificate format: PACMAC-XXXXXXXX-XXXXXXXX</p>
+            <p>Device ID format: DEV-XXXXXX</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Login screen (only shown after certificate validation)
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900">📱 PacMac Mobile Admin</h1>
-          <p className="mt-2 text-gray-600">Please sign in to access the inventory management system</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <h1 className="text-2xl font-bold text-green-800 mb-2">✅ Certificate Validated</h1>
+            <p className="text-green-600">Security certificate accepted. Please sign in to continue.</p>
+          </div>
           
-          <form onSubmit={handleSimpleLogin} className="mt-8 space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">📱 PacMac Mobile Admin</h2>
+          <p className="text-gray-600 mb-6">Please sign in to access the inventory management system</p>
+          
+          <form onSubmit={handleSimpleLogin} className="space-y-4">
             <div>
               <input
                 type="text"
