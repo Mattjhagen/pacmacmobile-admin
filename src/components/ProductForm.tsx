@@ -119,6 +119,8 @@ export default function ProductForm({
         },
         body: JSON.stringify({
           ...formData,
+          price: parseFloat(formData.price),
+          stockCount: parseInt(formData.stockCount) || 0,
           specs: JSON.stringify(formData.specs)
         })
       })
@@ -127,7 +129,8 @@ export default function ProductForm({
         onSuccess()
       } else {
         const error = await response.json()
-        alert(`Error: ${error.error}`)
+        console.error('API Error:', error)
+        alert(`Error: ${error.error}${error.details ? `\nDetails: ${error.details}` : ''}`)
       }
     } catch (error) {
       console.error('Error saving product:', error)

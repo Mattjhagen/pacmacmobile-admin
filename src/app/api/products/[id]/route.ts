@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Simple in-memory storage for products (shared with main route)
-// In a real app, this would be a database
-let products: any[] = []
+// Using a global variable to persist across requests
+declare global {
+  var __products: any[] | undefined
+}
+
+const products = globalThis.__products ?? (globalThis.__products = [])
 
 // GET /api/products/[id] - Fetch a single product
 export async function GET(

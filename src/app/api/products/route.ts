@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Simple in-memory storage for products (replace with database later)
-let products: any[] = []
+// Using a global variable to persist across requests
+declare global {
+  var __products: any[] | undefined
+}
+
+const products = globalThis.__products ?? (globalThis.__products = [])
 
 // GET /api/products - Fetch all products
 export async function GET() {
@@ -21,6 +26,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Received product data:', body)
+    
     const {
       name,
       brand,
@@ -36,6 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!name || !brand || !model || !price) {
+      console.log('Missing required fields:', { name, brand, model, price })
       return NextResponse.json(
         { error: 'Missing required fields: name, brand, model, price' },
         { status: 400 }
@@ -59,14 +67,21 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString()
     }
 
+    console.log('Created product:', product)
+
     // Add to in-memory storage
     products.push(product)
+    console.log('Products array length:', products.length)
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {
     console.error('Error creating product:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { error: 'Failed to create product' },
+      { error: 'Failed to create product', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
