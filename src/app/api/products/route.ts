@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Product interface for type safety
+interface Product {
+  id: string
+  name: string
+  brand: string
+  model: string
+  price: number
+  description?: string
+  imageUrl?: string
+  specs?: Record<string, unknown>
+  inStock: boolean
+  stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
+}
+
 // Simple in-memory storage for products (replace with database later)
 // Using a global variable to persist across requests
 declare global {
-  var __products: any[] | undefined
+  var __products: Product[] | undefined
 }
 
 const products = globalThis.__products ?? (globalThis.__products = [])

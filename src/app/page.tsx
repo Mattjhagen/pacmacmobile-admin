@@ -2,7 +2,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
@@ -44,7 +43,6 @@ interface ProductTemplate {
 }
 
 export default function AdminDashboard() {
-  const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([])
   const [showForm, setShowForm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -57,7 +55,6 @@ export default function AdminDashboard() {
   const [certData, setCertData] = useState({ certKey: '', deviceId: '' })
   const [showAutofillSuggestions, setShowAutofillSuggestions] = useState(false)
   const [autofillSuggestions, setAutofillSuggestions] = useState<ProductTemplate[]>([])
-  const [currentProductName, setCurrentProductName] = useState('')
 
   // Autofill system with product templates
   const productTemplates = {
@@ -260,7 +257,6 @@ export default function AdminDashboard() {
   }
 
   const handleProductNameChange = (value: string) => {
-    setCurrentProductName(value)
     const suggestions = getAutofillSuggestions(value)
     setAutofillSuggestions(suggestions)
     setShowAutofillSuggestions(suggestions.length > 0)
@@ -268,7 +264,6 @@ export default function AdminDashboard() {
 
   const selectAutofillSuggestion = (suggestion: ProductTemplate) => {
     // Fill form with suggestion data
-    setCurrentProductName(suggestion.name)
     setShowAutofillSuggestions(false)
     
     // You can add more form field updates here
