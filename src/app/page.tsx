@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
 import ImportModal from '@/components/ImportModal'
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
     setShowAutofillSuggestions(suggestions.length > 0)
   }
 
-  const selectAutofillSuggestion = (suggestion: ProductTemplate) => {
+  const selectAutofillSuggestion = (_suggestion: ProductTemplate) => {
     // Fill form with suggestion data
     setShowAutofillSuggestions(false)
     

@@ -163,14 +163,14 @@ window.inventoryAPI = new InventoryAPI();`
       const configResult = await createOrUpdateFile('config.js', configJs, 'Add missing config.js for product display')
       results.push({ file: 'config.js', success: true, result: configResult })
     } catch (error) {
-      results.push({ file: 'config.js', success: false, error: error.message })
+      results.push({ file: 'config.js', success: false, error: error instanceof Error ? error.message : 'Unknown error' })
     }
 
     try {
       const inventoryResult = await createOrUpdateFile('inventory-api.js', inventoryApiJs, 'Add missing inventory-api.js for product display')
       results.push({ file: 'inventory-api.js', success: true, result: inventoryResult })
     } catch (error) {
-      results.push({ file: 'inventory-api.js', success: false, error: error.message })
+      results.push({ file: 'inventory-api.js', success: false, error: error instanceof Error ? error.message : 'Unknown error' })
     }
 
     const successCount = results.filter(r => r.success).length
