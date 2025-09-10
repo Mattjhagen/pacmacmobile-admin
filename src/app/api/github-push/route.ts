@@ -115,12 +115,59 @@ export async function POST(request: NextRequest) {
     const fileData = await getFileResponse.json()
     const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8')
     
-    // Find and replace the PRODUCTS array
-    const productsRegex = /const PRODUCTS = \[[\s\S]*?\];/
-    const newContent = currentContent.replace(productsRegex, productsArray)
+    // Debug: Log the first 1000 characters to see the structure
+    console.log('Current index.html content (first 1000 chars):', currentContent.substring(0, 1000))
+    console.log('Looking for PRODUCTS array patterns...')
     
-    if (newContent === currentContent) {
-      throw new Error('Could not find PRODUCTS array in index.html')
+    // Find and replace the PRODUCTS array with multiple patterns
+    const patterns = [
+      /const PRODUCTS = \[[\s\S]*?\];/g,
+      /let PRODUCTS = \[[\s\S]*?\];/g,
+      /var PRODUCTS = \[[\s\S]*?\];/g,
+      /PRODUCTS = \[[\s\S]*?\];/g,
+      /const products = \[[\s\S]*?\];/g,
+      /let products = \[[\s\S]*?\];/g,
+      /var products = \[[\s\S]*?\];/g,
+      /products = \[[\s\S]*?\];/g
+    ]
+    
+    let newContent = currentContent
+    let found = false
+    
+    for (const pattern of patterns) {
+      if (pattern.test(newContent)) {
+        newContent = newContent.replace(pattern, productsArray)
+        found = true
+        break
+      }
+    }
+    
+    if (!found) {
+      // If no existing array found, try to add it after a script tag or before closing body
+      const scriptTagPattern = /<script[^>]*>[\s\S]*?<\/script>/g
+      const scriptMatches = [...currentContent.matchAll(scriptTagPattern)]
+      
+      if (scriptMatches.length > 0) {
+        // Add after the last script tag
+        const lastScript = scriptMatches[scriptMatches.length - 1]
+        const insertIndex = lastScript.index! + lastScript[0].length
+        newContent = currentContent.slice(0, insertIndex) + 
+                    `\n\n<script>\n${productsArray}\n</script>` + 
+                    currentContent.slice(insertIndex)
+        found = true
+      } else {
+        // Add before closing body tag
+        const bodyClosePattern = /<\/body>/i
+        if (bodyClosePattern.test(newContent)) {
+          newContent = newContent.replace(bodyClosePattern, 
+            `<script>\n${productsArray}\n</script>\n</body>`)
+          found = true
+        }
+      }
+    }
+    
+    if (!found) {
+      throw new Error('Could not find PRODUCTS array or suitable location to add it in index.html')
     }
 
     // Update the file on GitHub
