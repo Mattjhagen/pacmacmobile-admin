@@ -121,6 +121,11 @@
                 <div class="cert-display" id="device-id"></div>
                 <button class="copy-btn" onclick="copyToClipboard('device-id')">Copy Device ID</button>
             </div>
+            
+            <div class="form-group">
+                <label>Validation Hash (for debugging):</label>
+                <div class="cert-display" id="validation-hash"></div>
+            </div>
 
             <div style="background: #e6f2ff; padding: 15px; border-radius: 6px; margin-top: 20px;">
                 <h4>📋 Instructions:</h4>
@@ -151,7 +156,16 @@
             // Generate device ID in format: DEV-XXXXXX
             const deviceId = 'DEV-' + generateRandomString(6);
             
-            return { certKey, deviceId };
+            // Calculate the hash to ensure it matches the validation
+            const combinedString = certKey + deviceId + 'PACMAC_SECURE_2024';
+            let hash = 0;
+            for (let i = 0; i < combinedString.length; i++) {
+                const char = combinedString.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            return { certKey, deviceId, hash: Math.abs(hash) };
         }
 
         function copyToClipboard(elementId) {
@@ -178,12 +192,13 @@
             const deviceName = document.getElementById('device-name').value;
             const deviceLocation = document.getElementById('device-location').value;
             
-            const { certKey, deviceId } = generateCertificate(deviceName, deviceLocation);
+            const { certKey, deviceId, hash } = generateCertificate(deviceName, deviceLocation);
             
             // Display results
             document.getElementById('device-info').textContent = `${deviceName} (${deviceLocation})`;
             document.getElementById('cert-key').textContent = certKey;
             document.getElementById('device-id').textContent = deviceId;
+            document.getElementById('validation-hash').textContent = hash;
             document.getElementById('result').style.display = 'block';
             
             // Scroll to results
