@@ -696,6 +696,20 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3 py-4 border-t border-gray-200">
+              {/* VERY OBVIOUS TEST BUTTON */}
+              <button
+                onClick={() => alert('TEST BUTTON WORKS! Purple button should be visible too.')}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
+                style={{ 
+                  backgroundColor: '#dc2626', 
+                  border: '4px solid #b91c1c',
+                  boxShadow: '0 8px 25px 0 rgba(220, 38, 38, 0.5)',
+                  minWidth: '180px'
+                }}
+              >
+                🧪 TEST BUTTON
+              </button>
+              
               <button
                 onClick={() => setShowImportModal(true)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -767,21 +781,27 @@ export default function AdminDashboard() {
                 {pushingInventory ? 'Pushing to Main Site...' : 'Push to Main Site'}
               </button>
               
-              {/* Direct GitHub Push Button */}
+              {/* Direct GitHub Push Button - VERY PROMINENT */}
               <button
-                onClick={() => setShowGithubForm(true)}
+                onClick={() => {
+                  console.log('Direct GitHub Push button clicked!')
+                  setShowGithubForm(true)
+                }}
                 disabled={pushingToGithub}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl shadow-2xl text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-110 transition-all duration-300"
                 style={{ 
                   backgroundColor: '#9333ea', 
-                  border: '3px solid #7c3aed',
-                  boxShadow: '0 4px 14px 0 rgba(147, 51, 234, 0.3)'
+                  border: '4px solid #7c3aed',
+                  boxShadow: '0 8px 25px 0 rgba(147, 51, 234, 0.5)',
+                  minWidth: '200px',
+                  fontSize: '18px',
+                  fontWeight: 'bold'
                 }}
               >
                 {pushingToGithub ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-4"></div>
                 ) : (
-                  <span className="mr-3 text-xl">⚡</span>
+                  <span className="mr-4 text-2xl">⚡</span>
                 )}
                 {pushingToGithub ? 'Pushing to GitHub...' : 'Direct GitHub Push'}
               </button>
