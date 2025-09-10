@@ -2,17 +2,19 @@
 import NextAuth from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 
-if (!process.env.GITHUB_ID || !process.env.GITHUB_SECRET) {
-  throw new Error('Missing GitHub OAuth environment variables');
-}
-
-export const authOptions = {
+const authOptions = {
   providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
+    ...(process.env.GITHUB_ID && process.env.GITHUB_SECRET ? [
+      GithubProvider({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET,
+      }),
+    ] : []),
   ],
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
 };
 
 const handler = NextAuth(authOptions);
