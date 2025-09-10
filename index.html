@@ -278,7 +278,7 @@
             <h1>📱 PacMac Mobile Inventory Admin</h1>
             <p>Please sign in to manage your product inventory, pricing, and images</p>
             <div style="margin-top: 20px;">
-                <button id="btn-login" class="btn" onclick="login()" style="margin-right: 10px;">🔐 Log in with Google</button>
+                <button id="btn-login" class="btn" onclick="login()" style="margin-right: 10px;">🔐 Log in with GitHub</button>
                 <button id="btn-logout" class="btn btn-secondary" onclick="logout()" style="display: none;">🚪 Log out</button>
             </div>
             <div id="user-info" style="margin-top: 15px; display: none;">
@@ -431,8 +431,8 @@
         </div> <!-- End admin-content -->
     </div>
     
-    <!-- Google OAuth SDK -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- GitHub OAuth SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@github/auth-js@latest/dist/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // OAuth Authentication System
@@ -440,6 +440,7 @@
             constructor() {
                 this.isAuthenticated = false;
                 this.user = null;
+                this.githubClientId = 'YOUR_GITHUB_CLIENT_ID'; // Replace with your GitHub OAuth App Client ID
                 this.initializeAuth();
             }
 
@@ -453,41 +454,63 @@
                 } else {
                     this.showUnauthenticatedState();
                 }
+            }
 
-                // Initialize Google OAuth
-                if (typeof google !== 'undefined') {
-                    google.accounts.id.initialize({
-                        client_id: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your actual client ID
-                        callback: this.handleCredentialResponse.bind(this),
-                        auto_select: false,
-                        cancel_on_tap_outside: true
-                    });
+            async handleGitHubCallback() {
+                // Check if we're returning from GitHub OAuth
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = urlParams.get('state');
+
+                if (code && state === 'pmm-auth') {
+                    try {
+                        // Exchange code for access token
+                        const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                client_id: this.githubClientId,
+                                client_secret: 'YOUR_GITHUB_CLIENT_SECRET', // You'll need to handle this securely
+                                code: code
+                            })
+                        });
+
+                        const tokenData = await tokenResponse.json();
+                        
+                        if (tokenData.access_token) {
+                            // Get user info from GitHub
+                            const userResponse = await fetch('https://api.github.com/user', {
+                                headers: {
+                                    'Authorization': `token ${tokenData.access_token}`,
+                                    'Accept': 'application/vnd.github.v3+json'
+                                }
+                            });
+
+                            const userData = await userResponse.json();
+                            
+                            this.user = {
+                                name: userData.name || userData.login,
+                                email: userData.email,
+                                picture: userData.avatar_url,
+                                login: userData.login,
+                                id: userData.id
+                            };
+
+                            this.isAuthenticated = true;
+                            localStorage.setItem('pmm-user', JSON.stringify(this.user));
+                            this.showAuthenticatedState();
+                            
+                            // Clean up URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    } catch (error) {
+                        console.error('GitHub OAuth error:', error);
+                        alert('Authentication failed. Please try again.');
+                    }
                 }
-            }
-
-            handleCredentialResponse(response) {
-                // Decode the JWT token
-                const responsePayload = this.decodeJwtResponse(response.credential);
-                
-                this.user = {
-                    name: responsePayload.name,
-                    email: responsePayload.email,
-                    picture: responsePayload.picture,
-                    sub: responsePayload.sub
-                };
-
-                this.isAuthenticated = true;
-                localStorage.setItem('pmm-user', JSON.stringify(this.user));
-                this.showAuthenticatedState();
-            }
-
-            decodeJwtResponse(token) {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
             }
 
             showAuthenticatedState() {
@@ -519,21 +542,14 @@
                 this.user = null;
                 localStorage.removeItem('pmm-user');
                 this.showUnauthenticatedState();
-                
-                // Sign out from Google
-                if (typeof google !== 'undefined') {
-                    google.accounts.id.disableAutoSelect();
-                }
             }
         }
 
         // Global authentication functions
         function login() {
-            if (typeof google !== 'undefined') {
-                google.accounts.id.prompt();
-            } else {
-                alert('Google OAuth is not loaded. Please refresh the page and try again.');
-            }
+            // Redirect to GitHub OAuth
+            const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${authManager.githubClientId}&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&scope=user:email&state=pmm-auth`;
+            window.location.href = githubAuthUrl;
         }
 
         function logout() {
@@ -542,6 +558,11 @@
 
         // Initialize authentication
         const authManager = new AuthManager();
+        
+        // Handle GitHub OAuth callback when page loads
+        window.addEventListener('load', () => {
+            authManager.handleGitHubCallback();
+        });
 
         // Inventory Management System
         class InventoryManager {
