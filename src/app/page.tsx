@@ -757,38 +757,6 @@ export default function AdminDashboard() {
               🧪 API TEST
             </button>
             
-            <button
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/fix-missing-scripts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      githubToken: githubToken,
-                      repository: 'Mattjhagen/New-PacMac'
-                    })
-                  })
-                  const result = await response.json()
-                  if (result.success) {
-                    alert(`✅ SUCCESS: Missing scripts added to main site!\n\nFiles added:\n- config.js\n- inventory-api.js\n\nProducts should now display on pacmacmobile.com!`)
-                  } else {
-                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
-                  }
-                } catch (error) {
-                  alert(`❌ ERROR: ${error}`)
-                }
-              }}
-              disabled={!githubToken}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
-              style={{
-                backgroundColor: '#059669',
-                border: '4px solid #047857',
-                boxShadow: '0 8px 25px 0 rgba(5, 150, 105, 0.5)',
-                minWidth: '200px'
-              }}
-            >
-              🔧 FIX MISSING SCRIPTS
-            </button>
               
               <button
                 onClick={() => setShowImportModal(true)}
@@ -862,29 +830,65 @@ export default function AdminDashboard() {
               </button>
               
               {/* Direct GitHub Push Button - VERY PROMINENT */}
-              <button
-                onClick={() => {
-                  console.log('Direct GitHub Push button clicked!')
-                  setShowGithubForm(true)
-                }}
-                disabled={pushingToGithub}
-                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl shadow-2xl text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-110 transition-all duration-300"
-                style={{ 
-                  backgroundColor: '#9333ea', 
-                  border: '4px solid #7c3aed',
-                  boxShadow: '0 8px 25px 0 rgba(147, 51, 234, 0.5)',
-                  minWidth: '200px',
-                  fontSize: '18px',
-                  fontWeight: 'bold'
-                }}
-              >
-                {pushingToGithub ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-4"></div>
-                ) : (
-                  <span className="mr-4 text-2xl">⚡</span>
-                )}
-                {pushingToGithub ? 'Pushing to GitHub...' : 'Direct GitHub Push'}
-              </button>
+            <button
+              onClick={() => {
+                console.log('Direct GitHub Push button clicked!')
+                setShowGithubForm(true)
+              }}
+              disabled={pushingToGithub}
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl shadow-2xl text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-110 transition-all duration-300"
+              style={{
+                backgroundColor: '#9333ea',
+                border: '4px solid #7c3aed',
+                boxShadow: '0 8px 25px 0 rgba(147, 51, 234, 0.5)',
+                minWidth: '200px',
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}
+            >
+              {pushingToGithub ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-4"></div>
+              ) : (
+                <span className="mr-4 text-2xl">⚡</span>
+              )}
+              {pushingToGithub ? 'Pushing to GitHub...' : 'Direct GitHub Push'}
+            </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/fix-missing-scripts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: Missing scripts added to main site!\n\nFiles added:\n- config.js\n- inventory-api.js\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl shadow-2xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-110 transition-all duration-300"
+              style={{
+                backgroundColor: '#059669',
+                border: '4px solid #047857',
+                boxShadow: '0 8px 25px 0 rgba(5, 150, 105, 0.5)',
+                minWidth: '250px',
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}
+            >
+              <span className="mr-4 text-2xl">🔧</span>
+              FIX MISSING SCRIPTS
+            </button>
             </div>
         </div>
       </header>
