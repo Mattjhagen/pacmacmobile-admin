@@ -232,10 +232,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error pushing to GitHub:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
       { 
         error: 'Failed to push to GitHub', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     )

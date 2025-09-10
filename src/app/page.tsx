@@ -489,7 +489,7 @@ export default function AdminDashboard() {
       const result = await response.json()
       
       if (response.ok) {
-        if (result.result.method === 'file-generation') {
+        if (result.result && result.result.method === 'file-generation') {
           // Show the generated file content for manual upload
           const fileContent = result.result.fileContent
           const newWindow = window.open('', '_blank')
@@ -523,7 +523,7 @@ export default function AdminDashboard() {
           alert(`Successfully pushed ${result.pushed} products to main site!`)
         }
       } else {
-        alert(`Error: ${result.error}`)
+        alert(`Error: ${result.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error pushing inventory:', error)
@@ -567,10 +567,12 @@ export default function AdminDashboard() {
       const result = await response.json()
       
       if (response.ok) {
-        alert(`Successfully pushed ${result.pushed} products to GitHub!\n\nCommit: ${result.commit.sha}\nURL: ${result.url}`)
+        const commitInfo = result.commit ? `\nCommit: ${result.commit.sha}` : ''
+        const urlInfo = result.url ? `\nURL: ${result.url}` : ''
+        alert(`Successfully pushed ${result.pushed} products to GitHub!${commitInfo}${urlInfo}`)
         setShowGithubForm(false)
       } else {
-        alert(`Error: ${result.error}\nDetails: ${result.details}`)
+        alert(`Error: ${result.error || 'Unknown error'}\nDetails: ${result.details || 'No details available'}`)
       }
     } catch (error) {
       console.error('Error pushing to GitHub:', error)
@@ -735,7 +737,15 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap gap-3 py-4 border-t border-gray-200">
               {/* VERY OBVIOUS TEST BUTTON */}
               <button
-                onClick={() => alert('TEST BUTTON WORKS! Purple button should be visible too.')}
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/test')
+                    const result = await response.json()
+                    alert(`API Test: ${result.success ? 'SUCCESS' : 'FAILED'}\nMessage: ${result.message}`)
+                  } catch (error) {
+                    alert(`API Test FAILED: ${error}`)
+                  }
+                }}
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-lg text-white"
                 style={{ 
                   backgroundColor: '#dc2626', 
@@ -744,7 +754,7 @@ export default function AdminDashboard() {
                   minWidth: '180px'
                 }}
               >
-                🧪 TEST BUTTON
+                🧪 API TEST
               </button>
               
               <button
