@@ -269,6 +269,102 @@
             color: #8e8e93;
             font-size: 14px;
         }
+        
+        /* Autofill Styles */
+        .autofill-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e5e7;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .autofill-suggestion {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        
+        .autofill-suggestion:hover {
+            background: #f8f9ff;
+        }
+        
+        .autofill-suggestion:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-title {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 4px;
+        }
+        
+        .suggestion-details {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .template-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border: 1px solid #e5e5e7;
+        }
+        
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .template-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #007AFF;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .template-btn:hover {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .bulk-import-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border: 1px solid #e5e5e7;
+        }
+        
+        .push-integration {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e6f2ff;
+            border-radius: 8px;
+            border: 1px solid #007AFF;
+        }
+        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -317,11 +413,27 @@
         <div id="add-product" class="tab-content">
             <div class="form-section">
                 <h2>Add New Product</h2>
+                
+                <!-- Product Templates -->
+                <div class="template-selector">
+                    <h3>🚀 Quick Start Templates</h3>
+                    <p>Select a template to auto-fill common product information:</p>
+                    <div class="template-buttons">
+                        <button type="button" class="template-btn" onclick="loadTemplate('iphone')">📱 iPhone</button>
+                        <button type="button" class="template-btn" onclick="loadTemplate('ipad')">📱 iPad</button>
+                        <button type="button" class="template-btn" onclick="loadTemplate('apple-watch')">⌚ Apple Watch</button>
+                        <button type="button" class="template-btn" onclick="loadTemplate('samsung')">📱 Samsung Galaxy</button>
+                        <button type="button" class="template-btn" onclick="loadTemplate('accessory')">🔌 Accessory</button>
+                        <button type="button" class="template-btn" onclick="loadTemplate('refurbished')">♻️ Refurbished</button>
+                    </div>
+                </div>
+                
                 <form id="product-form">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="product-name">Product Name *</label>
-                            <input type="text" id="product-name" required placeholder="e.g., iPhone 15 Pro Max">
+                            <input type="text" id="product-name" required placeholder="e.g., iPhone 15 Pro Max" autocomplete="off">
+                            <div id="name-suggestions" class="autofill-suggestions hidden"></div>
                         </div>
                         
                         <div class="form-group">
@@ -374,8 +486,31 @@
                     <div style="display: flex; gap: 15px; margin-top: 20px;">
                         <button type="submit" class="btn">Add Product</button>
                         <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+                        <button type="button" class="btn btn-secondary" onclick="autoFillFromName()">Auto-Fill from Name</button>
                     </div>
                 </form>
+                
+                <!-- Bulk Import Section -->
+                <div class="bulk-import-section">
+                    <h3>📊 Bulk Import with Autofill</h3>
+                    <p>Upload a CSV or Excel file to import multiple products with automatic field mapping and pricing:</p>
+                    <input type="file" id="bulk-import-file" accept=".csv,.xlsx,.xls" style="margin-bottom: 15px;">
+                    <br>
+                    <button class="btn" onclick="bulkImportWithAutofill()">Import with Autofill</button>
+                    <div id="bulk-import-preview" class="hidden"></div>
+                </div>
+                
+                <!-- Push Integration -->
+                <div class="push-integration">
+                    <h3>🚀 Push to Ecommerce Store</h3>
+                    <p>Directly push products to your main ecommerce site with automatic formatting:</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+                        <button class="btn" onclick="pushToMainSite()">Push Current Product</button>
+                        <button class="btn btn-secondary" onclick="pushAllInventory()">Push All Inventory</button>
+                        <button class="btn btn-secondary" onclick="generateProductCode()">Generate Code</button>
+                    </div>
+                    <div id="push-status" class="hidden" style="margin-top: 15px; padding: 10px; border-radius: 6px;"></div>
+                </div>
             </div>
         </div>
         
@@ -412,6 +547,405 @@
     </div>
     
     <script>
+        // Product Templates and Autofill System
+        const PRODUCT_TEMPLATES = {
+            iphone: {
+                name: 'iPhone 15 Pro Max',
+                category: 'main',
+                description: 'Latest iPhone with advanced features and premium build quality',
+                specs: {
+                    storage: '256GB',
+                    color: 'Natural Titanium',
+                    condition: 'Like New',
+                    carrier: 'Unlocked',
+                    battery: '100%'
+                },
+                tags: ['iPhone', '256GB', 'Natural Titanium', 'Like New', 'Unlocked'],
+                basePrice: 899
+            },
+            ipad: {
+                name: 'iPad Air 11-inch',
+                category: 'main',
+                description: 'Powerful iPad with M2 chip and stunning display',
+                specs: {
+                    storage: '128GB',
+                    color: 'Space Gray',
+                    condition: 'Like New',
+                    connectivity: 'Wi-Fi',
+                    generation: '5th Gen'
+                },
+                tags: ['iPad', 'Air', '128GB', 'Space Gray', 'Wi-Fi'],
+                basePrice: 499
+            },
+            'apple-watch': {
+                name: 'Apple Watch Series 10',
+                category: 'main',
+                description: 'Advanced smartwatch with health monitoring and fitness tracking',
+                specs: {
+                    size: '45mm',
+                    color: 'Midnight',
+                    condition: 'Like New',
+                    connectivity: 'GPS + Cellular',
+                    band: 'Sport Band'
+                },
+                tags: ['Apple Watch', 'Series 10', '45mm', 'Midnight', 'GPS + Cellular'],
+                basePrice: 399
+            },
+            samsung: {
+                name: 'Samsung Galaxy S25 Ultra',
+                category: 'main',
+                description: 'Premium Android smartphone with advanced camera system',
+                specs: {
+                    storage: '512GB',
+                    color: 'Titanium Black',
+                    condition: 'Like New',
+                    carrier: 'Unlocked',
+                    battery: '100%'
+                },
+                tags: ['Samsung', 'Galaxy S25', 'Ultra', '512GB', 'Titanium Black'],
+                basePrice: 1099
+            },
+            accessory: {
+                name: 'Wireless Charging Pad',
+                category: 'accessory',
+                description: 'Fast wireless charging pad compatible with all devices',
+                specs: {
+                    power: '15W',
+                    compatibility: 'Qi Standard',
+                    condition: 'New',
+                    color: 'White'
+                },
+                tags: ['Wireless Charging', '15W', 'Qi', 'White'],
+                basePrice: 29
+            },
+            refurbished: {
+                name: 'Refurbished iPhone 14 Pro',
+                category: 'refurbished',
+                description: 'Certified refurbished iPhone with warranty and like-new condition',
+                specs: {
+                    storage: '128GB',
+                    color: 'Deep Purple',
+                    condition: 'Refurbished',
+                    carrier: 'Unlocked',
+                    warranty: '90 Days'
+                },
+                tags: ['iPhone 14 Pro', 'Refurbished', '128GB', 'Deep Purple', 'Warranty'],
+                basePrice: 699
+            }
+        };
+
+        // Product Name Suggestions Database
+        const PRODUCT_SUGGESTIONS = [
+            'iPhone 15 Pro Max 256GB Natural Titanium',
+            'iPhone 15 Pro 128GB Blue Titanium',
+            'iPhone 15 Plus 128GB Pink',
+            'iPhone 15 128GB Black',
+            'iPhone 14 Pro Max 256GB Deep Purple',
+            'iPhone 14 Pro 128GB Space Black',
+            'iPhone 14 128GB Blue',
+            'iPhone 13 Pro Max 256GB Sierra Blue',
+            'iPhone 13 Pro 128GB Graphite',
+            'iPhone 13 128GB Pink',
+            'iPad Pro 12.9-inch 256GB Space Gray',
+            'iPad Pro 11-inch 128GB Silver',
+            'iPad Air 11-inch 128GB Space Gray',
+            'iPad Air 10.9-inch 64GB Blue',
+            'iPad 10.9-inch 64GB Silver',
+            'iPad mini 8.3-inch 64GB Space Gray',
+            'Apple Watch Series 10 45mm Midnight',
+            'Apple Watch Series 10 41mm Pink',
+            'Apple Watch Series 9 45mm Starlight',
+            'Apple Watch Series 9 41mm Midnight',
+            'Apple Watch SE 44mm Midnight',
+            'Apple Watch SE 40mm Starlight',
+            'Samsung Galaxy S25 Ultra 512GB Titanium Black',
+            'Samsung Galaxy S25 Ultra 256GB Titanium Gray',
+            'Samsung Galaxy S25+ 256GB Titanium Black',
+            'Samsung Galaxy S25 128GB Titanium Gray',
+            'Samsung Galaxy Z Fold6 256GB Titanium Black',
+            'Samsung Galaxy Z Flip6 256GB Titanium Gray',
+            'Google Pixel 9 Pro 256GB Obsidian',
+            'Google Pixel 9 128GB Obsidian',
+            'OnePlus 12 256GB Silky Black',
+            'OnePlus 12 128GB Flowy Emerald'
+        ];
+
+        // Autofill System
+        class AutofillSystem {
+            constructor() {
+                this.initializeAutofill();
+            }
+
+            initializeAutofill() {
+                const nameInput = document.getElementById('product-name');
+                if (nameInput) {
+                    nameInput.addEventListener('input', (e) => {
+                        this.showNameSuggestions(e.target.value);
+                    });
+                    
+                    nameInput.addEventListener('blur', () => {
+                        setTimeout(() => this.hideSuggestions(), 200);
+                    });
+                }
+            }
+
+            showNameSuggestions(query) {
+                if (!query || query.length < 2) {
+                    this.hideSuggestions();
+                    return;
+                }
+
+                const suggestions = PRODUCT_SUGGESTIONS.filter(name => 
+                    name.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, 5);
+
+                if (suggestions.length === 0) {
+                    this.hideSuggestions();
+                    return;
+                }
+
+                const suggestionsDiv = document.getElementById('name-suggestions');
+                suggestionsDiv.innerHTML = suggestions.map(suggestion => `
+                    <div class="autofill-suggestion" onclick="autofillSystem.selectSuggestion('${suggestion}')">
+                        <div class="suggestion-title">${suggestion}</div>
+                        <div class="suggestion-details">Click to auto-fill</div>
+                    </div>
+                `).join('');
+                
+                suggestionsDiv.classList.remove('hidden');
+            }
+
+            selectSuggestion(suggestion) {
+                document.getElementById('product-name').value = suggestion;
+                this.hideSuggestions();
+                this.autoFillFromName(suggestion);
+            }
+
+            hideSuggestions() {
+                const suggestionsDiv = document.getElementById('name-suggestions');
+                if (suggestionsDiv) {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            }
+
+            autoFillFromName(productName = null) {
+                const name = productName || document.getElementById('product-name').value;
+                if (!name) return;
+
+                // Auto-generate product ID
+                const productId = this.generateProductId(name);
+                document.getElementById('product-id').value = productId;
+
+                // Auto-fill category based on name
+                const category = this.detectCategory(name);
+                document.getElementById('product-category').value = category;
+
+                // Auto-fill description
+                const description = this.generateDescription(name, category);
+                document.getElementById('product-description').value = description;
+
+                // Auto-fill specs
+                const specs = this.generateSpecs(name);
+                document.getElementById('product-specs').value = JSON.stringify(specs, null, 2);
+
+                // Auto-fill tags
+                const tags = this.generateTags(name, specs);
+                document.getElementById('product-tags').value = tags.join(', ');
+
+                // Auto-fill price
+                const price = this.calculatePrice(name, specs);
+                document.getElementById('product-price').value = price;
+
+                this.showAlert('Form auto-filled successfully!', 'success');
+            }
+
+            generateProductId(name) {
+                return 'pm-' + name.toLowerCase()
+                    .replace(/[^a-z0-9\s]/g, '')
+                    .replace(/\s+/g, '-')
+                    .substring(0, 30);
+            }
+
+            detectCategory(name) {
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes('iphone')) return 'main';
+                if (lowerName.includes('ipad')) return 'main';
+                if (lowerName.includes('watch')) return 'main';
+                if (lowerName.includes('samsung') || lowerName.includes('galaxy')) return 'main';
+                if (lowerName.includes('refurbished')) return 'refurbished';
+                if (lowerName.includes('case') || lowerName.includes('charger') || lowerName.includes('cable')) return 'accessory';
+                return 'main';
+            }
+
+            generateDescription(name, category) {
+                const descriptions = {
+                    main: `Premium ${name} in excellent condition with full functionality and warranty.`,
+                    refurbished: `Certified refurbished ${name} with 90-day warranty and like-new condition.`,
+                    accessory: `High-quality ${name} accessory compatible with all major devices.`
+                };
+                return descriptions[category] || descriptions.main;
+            }
+
+            generateSpecs(name) {
+                const specs = {};
+                const lowerName = name.toLowerCase();
+
+                // Storage detection
+                if (lowerName.includes('256gb')) specs.storage = '256GB';
+                else if (lowerName.includes('128gb')) specs.storage = '128GB';
+                else if (lowerName.includes('512gb')) specs.storage = '512GB';
+                else if (lowerName.includes('64gb')) specs.storage = '64GB';
+                else if (lowerName.includes('1tb')) specs.storage = '1TB';
+
+                // Color detection
+                const colors = ['black', 'white', 'blue', 'pink', 'purple', 'gray', 'silver', 'gold', 'titanium', 'natural'];
+                for (const color of colors) {
+                    if (lowerName.includes(color)) {
+                        specs.color = color.charAt(0).toUpperCase() + color.slice(1);
+                        break;
+                    }
+                }
+
+                // Condition detection
+                if (lowerName.includes('refurbished')) specs.condition = 'Refurbished';
+                else if (lowerName.includes('new')) specs.condition = 'New';
+                else specs.condition = 'Like New';
+
+                // Carrier detection
+                if (lowerName.includes('unlocked')) specs.carrier = 'Unlocked';
+                else if (lowerName.includes('verizon')) specs.carrier = 'Verizon';
+                else if (lowerName.includes('att') || lowerName.includes('at&t')) specs.carrier = 'AT&T';
+                else if (lowerName.includes('tmobile') || lowerName.includes('t-mobile')) specs.carrier = 'T-Mobile';
+
+                // Size detection for watches
+                if (lowerName.includes('45mm')) specs.size = '45mm';
+                else if (lowerName.includes('41mm')) specs.size = '41mm';
+                else if (lowerName.includes('44mm')) specs.size = '44mm';
+                else if (lowerName.includes('40mm')) specs.size = '40mm';
+
+                return specs;
+            }
+
+            generateTags(name, specs) {
+                const tags = [];
+                const lowerName = name.toLowerCase();
+
+                // Brand tags
+                if (lowerName.includes('iphone')) tags.push('iPhone');
+                if (lowerName.includes('ipad')) tags.push('iPad');
+                if (lowerName.includes('watch')) tags.push('Apple Watch');
+                if (lowerName.includes('samsung')) tags.push('Samsung');
+                if (lowerName.includes('galaxy')) tags.push('Galaxy');
+
+                // Spec tags
+                if (specs.storage) tags.push(specs.storage);
+                if (specs.color) tags.push(specs.color);
+                if (specs.condition) tags.push(specs.condition);
+                if (specs.carrier) tags.push(specs.carrier);
+                if (specs.size) tags.push(specs.size);
+
+                return tags;
+            }
+
+            calculatePrice(name, specs) {
+                let basePrice = 0;
+                const lowerName = name.toLowerCase();
+
+                // Base pricing by device type
+                if (lowerName.includes('iphone 15 pro max')) basePrice = 1099;
+                else if (lowerName.includes('iphone 15 pro')) basePrice = 999;
+                else if (lowerName.includes('iphone 15 plus')) basePrice = 899;
+                else if (lowerName.includes('iphone 15')) basePrice = 799;
+                else if (lowerName.includes('iphone 14 pro max')) basePrice = 999;
+                else if (lowerName.includes('iphone 14 pro')) basePrice = 899;
+                else if (lowerName.includes('iphone 14')) basePrice = 699;
+                else if (lowerName.includes('iphone 13 pro max')) basePrice = 799;
+                else if (lowerName.includes('iphone 13 pro')) basePrice = 699;
+                else if (lowerName.includes('iphone 13')) basePrice = 599;
+                else if (lowerName.includes('ipad pro 12.9')) basePrice = 1099;
+                else if (lowerName.includes('ipad pro 11')) basePrice = 799;
+                else if (lowerName.includes('ipad air')) basePrice = 599;
+                else if (lowerName.includes('ipad mini')) basePrice = 499;
+                else if (lowerName.includes('ipad')) basePrice = 449;
+                else if (lowerName.includes('watch series 10')) basePrice = 399;
+                else if (lowerName.includes('watch series 9')) basePrice = 399;
+                else if (lowerName.includes('watch se')) basePrice = 249;
+                else if (lowerName.includes('samsung galaxy s25 ultra')) basePrice = 1199;
+                else if (lowerName.includes('samsung galaxy s25')) basePrice = 799;
+                else if (lowerName.includes('samsung galaxy z fold')) basePrice = 1799;
+                else if (lowerName.includes('samsung galaxy z flip')) basePrice = 999;
+                else if (lowerName.includes('google pixel 9 pro')) basePrice = 999;
+                else if (lowerName.includes('google pixel 9')) basePrice = 699;
+                else if (lowerName.includes('oneplus 12')) basePrice = 799;
+                else basePrice = 299; // Default for accessories
+
+                // Adjust for storage
+                if (specs.storage === '512GB') basePrice += 200;
+                else if (specs.storage === '256GB') basePrice += 100;
+                else if (specs.storage === '1TB') basePrice += 400;
+
+                // Adjust for condition
+                if (specs.condition === 'Refurbished') basePrice *= 0.7;
+                else if (specs.condition === 'Good') basePrice *= 0.8;
+                else if (specs.condition === 'Fair') basePrice *= 0.6;
+
+                // Apply 22% markup
+                return Math.round(basePrice * 1.22);
+            }
+
+            parseSpecs(specsString) {
+                if (!specsString) return {};
+                try {
+                    return JSON.parse(specsString);
+                } catch (e) {
+                    return { note: specsString };
+                }
+            }
+
+            validateProduct(productData) {
+                const errors = [];
+                
+                if (!productData.name || productData.name.trim().length < 3) {
+                    errors.push('Product name must be at least 3 characters long');
+                }
+                
+                if (!productData.id || productData.id.trim().length < 3) {
+                    errors.push('Product ID must be at least 3 characters long');
+                }
+                
+                if (!productData.price || isNaN(productData.price) || parseFloat(productData.price) <= 0) {
+                    errors.push('Price must be a valid positive number');
+                }
+                
+                if (productData.tags && productData.tags.length > 0) {
+                    const tagArray = typeof productData.tags === 'string' ? 
+                        productData.tags.split(',').map(t => t.trim()) : productData.tags;
+                    
+                    if (tagArray.length > 10) {
+                        errors.push('Maximum 10 tags allowed');
+                    }
+                }
+                
+                return {
+                    isValid: errors.length === 0,
+                    errors: errors
+                };
+            }
+
+            showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type}`;
+                alert.textContent = message;
+                
+                const container = document.querySelector('.container');
+                container.insertBefore(alert, container.firstChild);
+                
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            }
+        }
+
         // Inventory Management System
         class InventoryManager {
             constructor() {
@@ -575,6 +1109,13 @@
                     tags: document.getElementById('product-tags').value,
                     imageData: document.getElementById('image-preview').src
                 };
+                
+                // Validate product data
+                const validation = autofillSystem.validateProduct(formData);
+                if (!validation.isValid) {
+                    this.showAlert('Validation errors: ' + validation.errors.join(', '), 'error');
+                    return;
+                }
                 
                 // Check if editing existing product
                 const existingIndex = this.inventory.findIndex(p => p.id === formData.id);
@@ -808,7 +1349,342 @@
             inventoryManager.syncToMainSite();
         }
         
-        // Initialize the inventory manager
+        // Global Functions for Autofill
+        function loadTemplate(templateType) {
+            const template = PRODUCT_TEMPLATES[templateType];
+            if (!template) return;
+
+            document.getElementById('product-name').value = template.name;
+            document.getElementById('product-category').value = template.category;
+            document.getElementById('product-description').value = template.description;
+            document.getElementById('product-specs').value = JSON.stringify(template.specs, null, 2);
+            document.getElementById('product-tags').value = template.tags.join(', ');
+            document.getElementById('product-price').value = template.basePrice;
+            
+            // Generate product ID
+            const productId = autofillSystem.generateProductId(template.name);
+            document.getElementById('product-id').value = productId;
+            
+            autofillSystem.showAlert(`Template "${templateType}" loaded successfully!`, 'success');
+        }
+
+        function autoFillFromName() {
+            autofillSystem.autoFillFromName();
+        }
+
+        function bulkImportWithAutofill() {
+            const fileInput = document.getElementById('bulk-import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                autofillSystem.showAlert('Please select a file to import.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    if (file.name.endsWith('.csv')) {
+                        data = parseCSV(e.target.result);
+                    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                        const firstSheetName = workbook.SheetNames[0];
+                        data = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+                    } else {
+                        throw new Error('Unsupported file format');
+                    }
+                    
+                    processBulkImport(data);
+                } catch (error) {
+                    autofillSystem.showAlert('Error reading file: ' + error.message, 'error');
+                }
+            };
+            
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        function processBulkImport(data) {
+            const preview = document.getElementById('bulk-import-preview');
+            preview.innerHTML = `
+                <h4>Preview (First 5 rows):</h4>
+                <table border="1" style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr>
+                            ${Object.keys(data[0] || {}).map(key => `<th>${key}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.slice(0, 5).map(row => `
+                            <tr>
+                                ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <p><strong>Total rows:</strong> ${data.length}</p>
+                <button class="btn" onclick="confirmBulkImport(${JSON.stringify(data).replace(/"/g, '&quot;')})">Confirm Import with Autofill</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('bulk-import-preview').classList.add('hidden')">Cancel</button>
+            `;
+            preview.classList.remove('hidden');
+        }
+
+        function confirmBulkImport(data) {
+            const products = data.map((row, index) => {
+                const name = row['Product Name'] || row['Name'] || row['Title'] || row['Model'] || `Product ${index + 1}`;
+                const productId = autofillSystem.generateProductId(name);
+                const category = autofillSystem.detectCategory(name);
+                const description = autofillSystem.generateDescription(name, category);
+                const specs = autofillSystem.generateSpecs(name);
+                const tags = autofillSystem.generateTags(name, specs);
+                const price = autofillSystem.calculatePrice(name, specs);
+                
+                return {
+                    id: productId,
+                    name: name,
+                    price: parseFloat(row['Price'] || row['Cost'] || row['Wholesale Price'] || price),
+                    category: category,
+                    description: row['Description'] || row['Details'] || description,
+                    specs: specs,
+                    tags: tags,
+                    img: 'products/placeholder.jpg',
+                    dateAdded: new Date().toISOString()
+                };
+            });
+            
+            products.forEach(product => {
+                inventoryManager.inventory.push(product);
+            });
+            
+            inventoryManager.saveInventory();
+            document.getElementById('bulk-import-preview').classList.add('hidden');
+            autofillSystem.showAlert(`Successfully imported ${products.length} products with autofill!`, 'success');
+            inventoryManager.updateDashboard();
+            inventoryManager.loadInventoryGrid();
+        }
+
+        function pushToMainSite() {
+            const formData = {
+                name: document.getElementById('product-name').value,
+                id: document.getElementById('product-id').value,
+                price: document.getElementById('product-price').value,
+                category: document.getElementById('product-category').value,
+                description: document.getElementById('product-description').value,
+                specs: document.getElementById('product-specs').value,
+                tags: document.getElementById('product-tags').value,
+                imageData: document.getElementById('image-preview').src
+            };
+            
+            if (!formData.name || !formData.id || !formData.price) {
+                autofillSystem.showAlert('Please fill in all required fields before pushing.', 'error');
+                return;
+            }
+            
+            inventoryManager.addProduct(formData);
+            const jsCode = generateSingleProductCode(formData);
+            
+            const statusDiv = document.getElementById('push-status');
+            statusDiv.innerHTML = `
+                <h4>✅ Product Ready for Main Site</h4>
+                <p>Product has been added to inventory and code generated.</p>
+                <button class="btn" onclick="copyProductCode()">Copy Code to Clipboard</button>
+                <button class="btn btn-secondary" onclick="openMainSiteIntegration()">Open Integration Window</button>
+            `;
+            statusDiv.classList.remove('hidden');
+            
+            window.generatedProductCode = jsCode;
+        }
+
+        function pushAllInventory() {
+            if (inventoryManager.inventory.length === 0) {
+                autofillSystem.showAlert('No products in inventory to push.', 'error');
+                return;
+            }
+            
+            const jsCode = inventoryManager.generateProductsArrayCode();
+            
+            const statusDiv = document.getElementById('push-status');
+            statusDiv.innerHTML = `
+                <h4>✅ All Products Ready for Main Site</h4>
+                <p>Generated code for ${inventoryManager.inventory.length} products.</p>
+                <button class="btn" onclick="copyAllProductsCode()">Copy All Products Code</button>
+                <button class="btn btn-secondary" onclick="openMainSiteIntegration()">Open Integration Window</button>
+            `;
+            statusDiv.classList.remove('hidden');
+            
+            window.generatedAllProductsCode = jsCode;
+        }
+
+        function generateProductCode() {
+            const jsCode = inventoryManager.generateProductsArrayCode();
+            
+            const statusDiv = document.getElementById('push-status');
+            statusDiv.innerHTML = `
+                <h4>📋 Product Code Generated</h4>
+                <p>Code ready for integration with main site.</p>
+                <button class="btn" onclick="copyAllProductsCode()">Copy Code to Clipboard</button>
+                <button class="btn btn-secondary" onclick="openMainSiteIntegration()">Open Integration Window</button>
+            `;
+            statusDiv.classList.remove('hidden');
+            
+            window.generatedAllProductsCode = jsCode;
+        }
+
+        function generateSingleProductCode(productData) {
+            const markupPercentage = 22;
+            const priceWithMarkup = (parseFloat(productData.price) * (1 + markupPercentage / 100)).toFixed(2);
+            
+            const product = {
+                id: productData.id,
+                name: productData.name,
+                price: parseFloat(priceWithMarkup),
+                tags: productData.tags ? productData.tags.split(',').map(t => t.trim()) : [],
+                img: productData.imageData || 'products/placeholder.jpg',
+                description: productData.description || '',
+                specs: autofillSystem.parseSpecs ? autofillSystem.parseSpecs(productData.specs) : {}
+            };
+            
+            let jsCode = `const PRODUCTS = [\n`;
+            jsCode += `  {\n`;
+            jsCode += `    id: '${product.id}',\n`;
+            jsCode += `    name: '${product.name.replace(/'/g, "\\'")}',\n`;
+            jsCode += `    price: ${product.price},\n`;
+            jsCode += `    tags: [${product.tags.map(tag => `'${tag.replace(/'/g, "\\'")}'`).join(', ')}],\n`;
+            jsCode += `    img: '${product.img}',\n`;
+            jsCode += `    description: '${product.description.replace(/'/g, "\\'")}',\n`;
+            jsCode += `    specs: ${JSON.stringify(product.specs, null, 4).replace(/^/gm, '    ')}\n`;
+            jsCode += `  }\n`;
+            jsCode += `];\n\n`;
+            jsCode += `// Generated on ${new Date().toISOString()}\n`;
+            jsCode += `// Single product with ${markupPercentage}% markup\n`;
+            
+            return jsCode;
+        }
+
+        function copyProductCode() {
+            if (window.generatedProductCode) {
+                navigator.clipboard.writeText(window.generatedProductCode).then(() => {
+                    autofillSystem.showAlert('Product code copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        function copyAllProductsCode() {
+            if (window.generatedAllProductsCode) {
+                navigator.clipboard.writeText(window.generatedAllProductsCode).then(() => {
+                    autofillSystem.showAlert('All products code copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        function openMainSiteIntegration() {
+            const code = window.generatedProductCode || window.generatedAllProductsCode || inventoryManager.generateProductsArrayCode();
+            
+            const newWindow = window.open('', '_blank', 'width=900,height=700');
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>PacMac Mobile - Product Integration</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background: #f5f5f7; }
+                        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        pre { background: #f8f9fa; padding: 20px; border-radius: 8px; overflow-x: auto; border: 1px solid #e5e5e7; font-size: 14px; }
+                        .copy-btn { background: #007AFF; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin: 15px 0; font-weight: 600; }
+                        .copy-btn:hover { background: #0056b3; }
+                        .instructions { background: #e6f2ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .step { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; }
+                        .github-link { background: #24292e; color: white; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                        .github-link a { color: #58a6ff; text-decoration: none; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>🚀 PacMac Mobile - Product Integration</h1>
+                        
+                        <div class="instructions">
+                            <h3>📋 Integration Instructions</h3>
+                            <div class="step">
+                                <strong>Step 1:</strong> Click "Copy to Clipboard" below
+                            </div>
+                            <div class="step">
+                                <strong>Step 2:</strong> Go to your main ecommerce site repository: <a href="https://github.com/Mattjhagen/New-PacMac" target="_blank">https://github.com/Mattjhagen/New-PacMac</a>
+                            </div>
+                            <div class="step">
+                                <strong>Step 3:</strong> Open the index.html file
+                            </div>
+                            <div class="step">
+                                <strong>Step 4:</strong> Find the PRODUCTS array (around line 400)
+                            </div>
+                            <div class="step">
+                                <strong>Step 5:</strong> Replace the entire PRODUCTS array with the copied code
+                            </div>
+                            <div class="step">
+                                <strong>Step 6:</strong> Save and commit your changes
+                            </div>
+                            <div class="step">
+                                <strong>Step 7:</strong> Deploy your site
+                            </div>
+                        </div>
+                        
+                        <div class="github-link">
+                            <h4>🔗 Direct Links:</h4>
+                            <p><a href="https://github.com/Mattjhagen/New-PacMac/blob/main/index.html" target="_blank">📄 Edit index.html directly on GitHub</a></p>
+                            <p><a href="https://github.com/Mattjhagen/New-PacMac" target="_blank">📁 View Repository</a></p>
+                        </div>
+                        
+                        <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                        
+                        <h3>Generated Code:</h3>
+                        <pre id="code-block">${code}</pre>
+                    </div>
+                    
+                    <script>
+                        function copyToClipboard() {
+                            const codeBlock = document.getElementById('code-block');
+                            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                                alert('✅ Code copied to clipboard!\\n\\nNow paste it into your index.html file to replace the PRODUCTS array.');
+                            }).catch(err => {
+                                const textArea = document.createElement('textarea');
+                                textArea.value = codeBlock.textContent;
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                                alert('✅ Code copied to clipboard!');
+                            });
+                        }
+                    </script>
+                </body>
+                </html>
+            `);
+        }
+
+        // Initialize the systems
+        const autofillSystem = new AutofillSystem();
         const inventoryManager = new InventoryManager();
     </script>
 </body>
