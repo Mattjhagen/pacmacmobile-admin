@@ -42,7 +42,7 @@ interface MainSiteProduct {
 // POST /api/github-push - Push inventory directly to GitHub repository
 export async function POST(request: NextRequest) {
   try {
-    const { githubToken, repository, branch = 'main' } = await request.json()
+    const { githubToken, repository, branch = 'main', testOnly = false } = await request.json()
     
     if (!githubToken) {
       return NextResponse.json(
@@ -56,6 +56,32 @@ export async function POST(request: NextRequest) {
         { error: 'Repository is required (format: owner/repo)' },
         { status: 400 }
       )
+    }
+
+    // Test GitHub token and repository access first
+    const testResponse = await fetch(`https://api.github.com/repos/${repository}`, {
+      headers: {
+        'Authorization': `token ${githubToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    })
+
+    if (!testResponse.ok) {
+      const testError = await testResponse.json().catch(() => ({}))
+      throw new Error(`GitHub access test failed: ${testResponse.status} - ${testError.message || 'Repository not found or no access'}`)
+    }
+
+    const repoInfo = await testResponse.json()
+    console.log('Repository access confirmed:', repoInfo.full_name, repoInfo.private ? 'private' : 'public')
+
+    if (testOnly) {
+      return NextResponse.json({
+        success: true,
+        message: 'GitHub token and repository access confirmed',
+        repository: repoInfo.full_name,
+        private: repoInfo.private,
+        defaultBranch: repoInfo.default_branch
+      })
     }
 
     // Get all in-stock products from admin
@@ -109,7 +135,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (!getFileResponse.ok) {
-      throw new Error(`Failed to fetch index.html: ${getFileResponse.status}`)
+      const errorData = await getFileResponse.json().catch(() => ({}))
+      throw new Error(`Failed to fetch index.html: ${getFileResponse.status} - ${errorData.message || 'Unknown error'}`)
     }
 
     const fileData = await getFileResponse.json()
@@ -188,7 +215,8 @@ export async function POST(request: NextRequest) {
 
     if (!updateResponse.ok) {
       const errorData = await updateResponse.json()
-      throw new Error(`Failed to update GitHub: ${errorData.message}`)
+      console.error('GitHub update error:', errorData)
+      throw new Error(`Failed to update GitHub: ${errorData.message || 'Unknown error'} (Status: ${updateResponse.status})`)
     }
 
     const updateResult = await updateResponse.json()

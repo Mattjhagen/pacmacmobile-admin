@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [githubToken, setGithubToken] = useState('')
   const [showGithubForm, setShowGithubForm] = useState(false)
   const [pushingToGithub, setPushingToGithub] = useState(false)
+  const [testingGithub, setTestingGithub] = useState(false)
 
   // Autofill system with product templates
   const productTemplates = {
@@ -579,6 +580,42 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleTestGithub = async () => {
+    if (!githubToken) {
+      alert('Please enter your GitHub token first')
+      return
+    }
+
+    setTestingGithub(true)
+    try {
+      const response = await fetch('/api/github-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          githubToken: githubToken,
+          repository: 'Mattjhagen/New-PacMac',
+          branch: 'main',
+          testOnly: true
+        })
+      })
+
+      const result = await response.json()
+      
+      if (response.ok) {
+        alert(`✅ GitHub Access Test Successful!\n\nRepository: ${result.repository}\nType: ${result.private ? 'Private' : 'Public'}\nDefault Branch: ${result.defaultBranch}\n\nYou can now push inventory!`)
+      } else {
+        alert(`❌ GitHub Access Test Failed!\n\nError: ${result.error}\nDetails: ${result.details}\n\nPlease check your token permissions.`)
+      }
+    } catch (error) {
+      console.error('Error testing GitHub:', error)
+      alert('Error testing GitHub access')
+    } finally {
+      setTestingGithub(false)
+    }
+  }
+
   // Certificate validation screen
   if (!certValidated) {
     return (
@@ -898,20 +935,30 @@ export default function AdminDashboard() {
                   </p>
                 </div>
 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-between">
                   <button
-                    onClick={() => setShowGithubForm(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    onClick={handleTestGithub}
+                    disabled={testingGithub || !githubToken}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    {testingGithub ? 'Testing...' : 'Test Access'}
                   </button>
-                  <button
-                    onClick={handleGithubPush}
-                    disabled={pushingToGithub || !githubToken}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {pushingToGithub ? 'Pushing...' : 'Push to GitHub'}
-                  </button>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowGithubForm(false)}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleGithubPush}
+                      disabled={pushingToGithub || !githubToken}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {pushingToGithub ? 'Pushing...' : 'Push to GitHub'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
