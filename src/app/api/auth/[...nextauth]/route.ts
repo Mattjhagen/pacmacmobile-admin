@@ -15,6 +15,7 @@ const authOptions = {
   callbacks: {
     async redirect({ url, baseUrl }: any) {
       console.log('NextAuth redirect called:', { url, baseUrl })
+      console.log('NEXTAUTH_URL env var:', process.env.NEXTAUTH_URL)
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
       // Allows callback URLs on the same origin
