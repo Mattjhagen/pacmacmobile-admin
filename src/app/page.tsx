@@ -32,6 +32,23 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [fetchingImages, setFetchingImages] = useState(false)
   const [fetchingSpecs, setFetchingSpecs] = useState(false)
+  const [loginData, setLoginData] = useState({ username: '', password: '' })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // Simple authentication handler
+  const handleSimpleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (loginData.username === 'admin' && loginData.password === 'pacmac2024') {
+      setIsAuthenticated(true)
+      setLoginData({ username: '', password: '' })
+    } else {
+      alert('Invalid username or password. Please try again.')
+    }
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+  }
 
   const fetchProducts = async () => {
     try {
@@ -48,10 +65,10 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (isAuthenticated) {
       fetchProducts()
     }
-  }, [status])
+  }, [isAuthenticated])
 
   const handleProductCreated = () => {
     setShowForm(false)
@@ -162,29 +179,41 @@ export default function AdminDashboard() {
     }
   }
 
-  if (status === 'loading') {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading session...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (status === 'unauthenticated') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900">Admin Portal</h1>
-          <p className="mt-2 text-gray-600">Please sign in to manage your inventory.</p>
-          <button
-            onClick={() => signIn('google')}
-            className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Sign in with Google
-          </button>
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900">📱 PacMac Mobile Admin</h1>
+          <p className="mt-2 text-gray-600">Please sign in to access the inventory management system</p>
+          
+          <form onSubmit={handleSimpleLogin} className="mt-8 space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Username"
+                value={loginData.username}
+                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full mt-6 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              🔐 Sign In
+            </button>
+          </form>
         </div>
       </div>
     )
@@ -198,11 +227,12 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-              <p className="text-gray-600">Welcome, {session?.user?.name}. Manage your phone inventory.</p>
+              <p className="text-gray-600">Manage your phone inventory.</p>
             </div>
             <div className="flex items-center gap-4">
+              <p className="text-gray-600">Welcome, admin!</p>
               <button
-                onClick={() => signOut()}
+                onClick={handleLogout}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50"
               >
                 Sign Out
