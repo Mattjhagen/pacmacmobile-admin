@@ -1,4 +1,5 @@
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import NextAuth from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 
@@ -12,7 +13,7 @@ const authOptions = {
     ] : []),
   ],
   callbacks: {
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: any) {
       console.log('NextAuth redirect called:', { url, baseUrl })
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
@@ -20,11 +21,11 @@ const authOptions = {
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       console.log('NextAuth session callback:', { session, token })
       return session
     },
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile }: any) {
       console.log('NextAuth JWT callback:', { token, account, profile })
       return token
     },
@@ -34,7 +35,7 @@ const authOptions = {
     error: '/',
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
