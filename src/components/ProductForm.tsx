@@ -19,14 +19,33 @@ interface Product {
   updatedAt: string
 }
 
+interface ProductTemplate {
+  name: string
+  category: string
+  description: string
+  specs: {
+    storage: string
+    color: string
+    condition: string
+    brand: string
+    model: string
+    screen?: string
+    camera?: string
+    processor?: string
+    connectivity?: string
+  }
+  tags: string[]
+  basePrice: number
+}
+
 interface ProductFormProps {
   product?: Product | null
   onSuccess: () => void
   onCancel: () => void
-  autofillSuggestions?: any[]
+  autofillSuggestions?: ProductTemplate[]
   showAutofillSuggestions?: boolean
   onProductNameChange?: (value: string) => void
-  onSelectAutofillSuggestion?: (suggestion: any) => void
+  onSelectAutofillSuggestion?: (suggestion: ProductTemplate) => void
 }
 
 export default function ProductForm({ 

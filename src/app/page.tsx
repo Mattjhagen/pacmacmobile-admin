@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
@@ -24,8 +24,27 @@ interface Product {
   updatedAt: string
 }
 
+interface ProductTemplate {
+  name: string
+  category: string
+  description: string
+  specs: {
+    storage: string
+    color: string
+    condition: string
+    brand: string
+    model: string
+    screen?: string
+    camera?: string
+    processor?: string
+    connectivity?: string
+  }
+  tags: string[]
+  basePrice: number
+}
+
 export default function AdminDashboard() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([])
   const [showForm, setShowForm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -37,7 +56,7 @@ export default function AdminDashboard() {
   const [certValidated, setCertValidated] = useState(false)
   const [certData, setCertData] = useState({ certKey: '', deviceId: '' })
   const [showAutofillSuggestions, setShowAutofillSuggestions] = useState(false)
-  const [autofillSuggestions, setAutofillSuggestions] = useState<any[]>([])
+  const [autofillSuggestions, setAutofillSuggestions] = useState<ProductTemplate[]>([])
   const [currentProductName, setCurrentProductName] = useState('')
 
   // Autofill system with product templates
@@ -221,15 +240,15 @@ export default function AdminDashboard() {
   }
 
   // Autofill functions
-  const getAutofillSuggestions = (input: string) => {
+  const getAutofillSuggestions = (input: string): ProductTemplate[] => {
     if (input.length < 2) return []
     
-    const suggestions: any[] = []
+    const suggestions: ProductTemplate[] = []
     const lowerInput = input.toLowerCase()
     
     // Search through all product templates
     Object.values(productTemplates).forEach(category => {
-      Object.values(category).forEach((product: any) => {
+      Object.values(category).forEach((product: ProductTemplate) => {
         if (product.name.toLowerCase().includes(lowerInput) || 
             product.tags.some((tag: string) => tag.toLowerCase().includes(lowerInput))) {
           suggestions.push(product)
@@ -247,7 +266,7 @@ export default function AdminDashboard() {
     setShowAutofillSuggestions(suggestions.length > 0)
   }
 
-  const selectAutofillSuggestion = (suggestion: any) => {
+  const selectAutofillSuggestion = (suggestion: ProductTemplate) => {
     // Fill form with suggestion data
     setCurrentProductName(suggestion.name)
     setShowAutofillSuggestions(false)
