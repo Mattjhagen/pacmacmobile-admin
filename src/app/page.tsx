@@ -681,11 +681,12 @@ export default function AdminDashboard() {
                 onClick={handlePushInventory}
                 disabled={pushingInventory}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: '#16a34a', border: '2px solid #15803d' }}
               >
                 {pushingInventory ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 ) : (
-                  <CloudArrowUpIcon className="h-5 w-5 mr-2" />
+                  <span className="mr-2">🚀</span>
                 )}
                 {pushingInventory ? 'Pushing...' : 'Push to Main Site'}
               </button>
@@ -695,6 +696,25 @@ export default function AdminDashboard() {
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Product
+              </button>
+              
+              {/* Push to Main Site Button - Prominent Green Button */}
+              <button
+                onClick={handlePushInventory}
+                disabled={pushingInventory}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                style={{ 
+                  backgroundColor: '#16a34a', 
+                  border: '3px solid #15803d',
+                  boxShadow: '0 4px 14px 0 rgba(34, 197, 94, 0.3)'
+                }}
+              >
+                {pushingInventory ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                ) : (
+                  <span className="mr-3 text-xl">🚀</span>
+                )}
+                {pushingInventory ? 'Pushing to Main Site...' : 'Push to Main Site'}
               </button>
             </div>
         </div>
