@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+
+// Simple in-memory storage for products (shared with main route)
+// In a real app, this would be a database
+let products: any[] = []
 
 // GET /api/products/[id] - Fetch a single product
 export async function GET(
@@ -8,9 +11,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const product = await prisma.product.findUnique({
-      where: { id }
-    })
+    const product = products.find(p => p.id === id)
 
     if (!product) {
       return NextResponse.json(
@@ -50,23 +51,32 @@ export async function PUT(
     } = body
 
     const { id } = await params
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(brand && { brand }),
-        ...(model && { model }),
-        ...(price && { price: parseFloat(price) }),
-        ...(description !== undefined && { description }),
-        ...(imageUrl !== undefined && { imageUrl }),
-        ...(specs && { specs: JSON.parse(specs) }),
-        ...(inStock !== undefined && { inStock }),
-        ...(stockCount !== undefined && { stockCount: parseInt(stockCount) }),
-        ...(category && { category })
-      }
-    })
+    const productIndex = products.findIndex(p => p.id === id)
 
-    return NextResponse.json(product)
+    if (productIndex === -1) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      )
+    }
+
+    // Update product in in-memory storage
+    products[productIndex] = {
+      ...products[productIndex],
+      ...(name && { name }),
+      ...(brand && { brand }),
+      ...(model && { model }),
+      ...(price && { price: parseFloat(price) }),
+      ...(description !== undefined && { description }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      ...(specs && { specs: typeof specs === 'string' ? JSON.parse(specs) : specs }),
+      ...(inStock !== undefined && { inStock }),
+      ...(stockCount !== undefined && { stockCount: parseInt(stockCount) }),
+      ...(category && { category }),
+      updatedAt: new Date().toISOString()
+    }
+
+    return NextResponse.json(products[productIndex])
   } catch (error) {
     console.error('Error updating product:', error)
     return NextResponse.json(
@@ -83,9 +93,17 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.product.delete({
-      where: { id }
-    })
+    const productIndex = products.findIndex(p => p.id === id)
+
+    if (productIndex === -1) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      )
+    }
+
+    // Remove product from in-memory storage
+    products.splice(productIndex, 1)
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+
+// Simple in-memory storage for products (replace with database later)
+let products: any[] = []
 
 // GET /api/products - Fetch all products
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' }
-    })
+    // Return products from in-memory storage
     return NextResponse.json(products)
   } catch (error) {
     console.error('Error fetching products:', error)
@@ -42,20 +42,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        brand,
-        model,
-        price: parseFloat(price),
-        description,
-        imageUrl,
-        specs: specs ? JSON.parse(specs) : null,
-        inStock: inStock ?? true,
-        stockCount: stockCount ? parseInt(stockCount) : 0,
-        category: category || 'phone'
-      }
-    })
+    // Create product with in-memory storage
+    const product = {
+      id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      brand,
+      model,
+      price: parseFloat(price),
+      description,
+      imageUrl,
+      specs: specs ? (typeof specs === 'string' ? JSON.parse(specs) : specs) : null,
+      inStock: inStock ?? true,
+      stockCount: stockCount ? parseInt(stockCount) : 0,
+      category: category || 'phone',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    // Add to in-memory storage
+    products.push(product)
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {
