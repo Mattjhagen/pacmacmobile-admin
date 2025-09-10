@@ -56,6 +56,9 @@ export default function AdminDashboard() {
   const [showAutofillSuggestions, setShowAutofillSuggestions] = useState(false)
   const [autofillSuggestions, setAutofillSuggestions] = useState<ProductTemplate[]>([])
   const [pushingInventory, setPushingInventory] = useState(false)
+  const [githubToken, setGithubToken] = useState('')
+  const [showGithubForm, setShowGithubForm] = useState(false)
+  const [pushingToGithub, setPushingToGithub] = useState(false)
 
   // Autofill system with product templates
   const productTemplates = {
@@ -529,6 +532,53 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleGithubPush = async () => {
+    if (!githubToken) {
+      alert('Please enter your GitHub token first')
+      return
+    }
+
+    const inStockProducts = products.filter(p => p.inStock)
+    
+    if (inStockProducts.length === 0) {
+      alert('No products in stock to push!')
+      return
+    }
+
+    if (!confirm(`Push ${inStockProducts.length} in-stock products directly to GitHub? This will update the main site automatically.`)) {
+      return
+    }
+
+    setPushingToGithub(true)
+    try {
+      const response = await fetch('/api/github-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          githubToken: githubToken,
+          repository: 'Mattjhagen/New-PacMac',
+          branch: 'main'
+        })
+      })
+
+      const result = await response.json()
+      
+      if (response.ok) {
+        alert(`Successfully pushed ${result.pushed} products to GitHub!\n\nCommit: ${result.commit.sha}\nURL: ${result.url}`)
+        setShowGithubForm(false)
+      } else {
+        alert(`Error: ${result.error}\nDetails: ${result.details}`)
+      }
+    } catch (error) {
+      console.error('Error pushing to GitHub:', error)
+      alert('Error pushing to GitHub')
+    } finally {
+      setPushingToGithub(false)
+    }
+  }
+
   // Certificate validation screen
   if (!certValidated) {
     return (
@@ -716,6 +766,25 @@ export default function AdminDashboard() {
                 )}
                 {pushingInventory ? 'Pushing to Main Site...' : 'Push to Main Site'}
               </button>
+              
+              {/* Direct GitHub Push Button */}
+              <button
+                onClick={() => setShowGithubForm(true)}
+                disabled={pushingToGithub}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                style={{ 
+                  backgroundColor: '#9333ea', 
+                  border: '3px solid #7c3aed',
+                  boxShadow: '0 4px 14px 0 rgba(147, 51, 234, 0.3)'
+                }}
+              >
+                {pushingToGithub ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                ) : (
+                  <span className="mr-3 text-xl">⚡</span>
+                )}
+                {pushingToGithub ? 'Pushing to GitHub...' : 'Direct GitHub Push'}
+              </button>
             </div>
         </div>
       </header>
@@ -778,6 +847,54 @@ export default function AdminDashboard() {
                 onDelete={handleDeleteProduct}
               />
             ))}
+          </div>
+        )}
+
+        {/* GitHub Push Modal */}
+        {showGithubForm && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Direct GitHub Push
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  This will directly update the main PacMac site by pushing to GitHub.
+                </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    GitHub Personal Access Token
+                  </label>
+                  <input
+                    type="password"
+                    value={githubToken}
+                    onChange={(e) => setGithubToken(e.target.value)}
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Create a token at <a href="https://github.com/settings/tokens" target="_blank" className="text-purple-600 hover:underline">github.com/settings/tokens</a> with repo permissions
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowGithubForm(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleGithubPush}
+                    disabled={pushingToGithub || !githubToken}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {pushingToGithub ? 'Pushing...' : 'Push to GitHub'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
