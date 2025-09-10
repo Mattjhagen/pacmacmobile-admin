@@ -273,10 +273,21 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <!-- Authentication Section -->
+        <div id="auth-section" class="header" style="text-align: center;">
             <h1>📱 PacMac Mobile Inventory Admin</h1>
-            <p>Manage your product inventory, pricing, and images</p>
+            <p>Please sign in to manage your product inventory, pricing, and images</p>
+            <div style="margin-top: 20px;">
+                <button id="btn-login" class="btn" onclick="login()" style="margin-right: 10px;">🔐 Log in with Google</button>
+                <button id="btn-logout" class="btn btn-secondary" onclick="logout()" style="display: none;">🚪 Log out</button>
+            </div>
+            <div id="user-info" style="margin-top: 15px; display: none;">
+                <p>Welcome, <span id="user-name"></span>!</p>
+            </div>
         </div>
+
+        <!-- Main Admin Content (hidden until authenticated) -->
+        <div id="admin-content" style="display: none;">
         
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
@@ -417,17 +428,131 @@
                 </div>
             </div>
         </div>
+        </div> <!-- End admin-content -->
     </div>
     
+    <!-- Google OAuth SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        // OAuth Authentication System
+        class AuthManager {
+            constructor() {
+                this.isAuthenticated = false;
+                this.user = null;
+                this.initializeAuth();
+            }
+
+            initializeAuth() {
+                // Check if user is already authenticated
+                const savedUser = localStorage.getItem('pmm-user');
+                if (savedUser) {
+                    this.user = JSON.parse(savedUser);
+                    this.isAuthenticated = true;
+                    this.showAuthenticatedState();
+                } else {
+                    this.showUnauthenticatedState();
+                }
+
+                // Initialize Google OAuth
+                if (typeof google !== 'undefined') {
+                    google.accounts.id.initialize({
+                        client_id: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your actual client ID
+                        callback: this.handleCredentialResponse.bind(this),
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                }
+            }
+
+            handleCredentialResponse(response) {
+                // Decode the JWT token
+                const responsePayload = this.decodeJwtResponse(response.credential);
+                
+                this.user = {
+                    name: responsePayload.name,
+                    email: responsePayload.email,
+                    picture: responsePayload.picture,
+                    sub: responsePayload.sub
+                };
+
+                this.isAuthenticated = true;
+                localStorage.setItem('pmm-user', JSON.stringify(this.user));
+                this.showAuthenticatedState();
+            }
+
+            decodeJwtResponse(token) {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            }
+
+            showAuthenticatedState() {
+                document.getElementById('btn-login').style.display = 'none';
+                document.getElementById('btn-logout').style.display = 'inline-block';
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('admin-content').style.display = 'block';
+                document.getElementById('user-name').textContent = this.user.name;
+                
+                // Initialize inventory manager if not already done
+                if (typeof inventoryManager === 'undefined') {
+                    window.inventoryManager = new InventoryManager();
+                } else {
+                    // Update dashboard and inventory grid
+                    inventoryManager.updateDashboard();
+                    inventoryManager.loadInventoryGrid();
+                }
+            }
+
+            showUnauthenticatedState() {
+                document.getElementById('btn-login').style.display = 'inline-block';
+                document.getElementById('btn-logout').style.display = 'none';
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'none';
+            }
+
+            logout() {
+                this.isAuthenticated = false;
+                this.user = null;
+                localStorage.removeItem('pmm-user');
+                this.showUnauthenticatedState();
+                
+                // Sign out from Google
+                if (typeof google !== 'undefined') {
+                    google.accounts.id.disableAutoSelect();
+                }
+            }
+        }
+
+        // Global authentication functions
+        function login() {
+            if (typeof google !== 'undefined') {
+                google.accounts.id.prompt();
+            } else {
+                alert('Google OAuth is not loaded. Please refresh the page and try again.');
+            }
+        }
+
+        function logout() {
+            authManager.logout();
+        }
+
+        // Initialize authentication
+        const authManager = new AuthManager();
+
         // Inventory Management System
         class InventoryManager {
             constructor() {
                 this.inventory = this.loadInventory();
                 this.initializeEventListeners();
-                this.updateDashboard();
-                this.loadInventoryGrid();
+                // Only update UI if user is authenticated
+                if (authManager.isAuthenticated) {
+                    this.updateDashboard();
+                    this.loadInventoryGrid();
+                }
             }
             
             loadInventory() {
@@ -912,8 +1037,8 @@
             inventoryManager.loadInventoryGrid();
         }
         
-        // Initialize the inventory manager
-        const inventoryManager = new InventoryManager();
+        // Initialize the inventory manager (will be created when user authenticates)
+        let inventoryManager;
     </script>
 </body>
 </html>
