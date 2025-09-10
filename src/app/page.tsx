@@ -893,6 +893,47 @@ export default function AdminDashboard() {
         </div>
       </header>
 
+      {/* EMERGENCY FIX BANNER */}
+      <div className="bg-red-100 border-l-4 border-red-500 p-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-red-800">🚨 EMERGENCY FIX NEEDED</h3>
+              <p className="text-red-700">Products not showing on pacmacmobile.com? Missing scripts need to be fixed!</p>
+            </div>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/fix-missing-scripts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: Missing scripts added to main site!\n\nFiles added:\n- config.js\n- inventory-api.js\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🔧 FIX MISSING SCRIPTS
+            </button>
+          </div>
+          {!githubToken && (
+            <p className="text-sm text-red-600 mt-2">⚠️ Enter your GitHub token in the modal above to enable this fix</p>
+          )}
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {showForm && (
