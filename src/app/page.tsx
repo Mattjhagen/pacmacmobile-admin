@@ -180,10 +180,10 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-bold text-gray-900">Admin Portal</h1>
           <p className="mt-2 text-gray-600">Please sign in to manage your inventory.</p>
           <button
-            onClick={() => signIn('github')}
+            onClick={() => signIn('google')}
             className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Sign in with GitHub
+            Sign in with Google
           </button>
         </div>
       </div>

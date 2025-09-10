@@ -1,14 +1,14 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import NextAuth from 'next-auth'
-import GithubProvider from 'next-auth/providers/github'
+import GoogleProvider from 'next-auth/providers/google'
 
 const authOptions = {
   providers: [
-    ...(process.env.GITHUB_ID && process.env.GITHUB_SECRET ? [
-      GithubProvider({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET,
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       }),
     ] : []),
   ],
