@@ -36,6 +36,225 @@ export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [certValidated, setCertValidated] = useState(false)
   const [certData, setCertData] = useState({ certKey: '', deviceId: '' })
+  const [showAutofillSuggestions, setShowAutofillSuggestions] = useState(false)
+  const [autofillSuggestions, setAutofillSuggestions] = useState<any[]>([])
+  const [currentProductName, setCurrentProductName] = useState('')
+
+  // Autofill system with product templates
+  const productTemplates = {
+    'iphone': {
+      'iphone 15': {
+        name: 'iPhone 15',
+        category: 'main',
+        description: 'Latest iPhone with A17 Pro chip and advanced camera system',
+        specs: {
+          storage: '128GB',
+          color: 'Natural Titanium',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 15',
+          screen: '6.1" Super Retina XDR',
+          camera: '48MP Main Camera',
+          processor: 'A17 Pro'
+        },
+        tags: ['iPhone', 'Apple', '128GB', 'Natural Titanium', 'New', 'A17 Pro'],
+        basePrice: 799
+      },
+      'iphone 15 pro': {
+        name: 'iPhone 15 Pro',
+        category: 'main',
+        description: 'Pro iPhone with titanium design and advanced camera system',
+        specs: {
+          storage: '128GB',
+          color: 'Natural Titanium',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 15 Pro',
+          screen: '6.1" Super Retina XDR',
+          camera: '48MP Main Camera',
+          processor: 'A17 Pro'
+        },
+        tags: ['iPhone', 'Apple', 'Pro', '128GB', 'Natural Titanium', 'New', 'A17 Pro'],
+        basePrice: 999
+      },
+      'iphone 15 pro max': {
+        name: 'iPhone 15 Pro Max',
+        category: 'main',
+        description: 'Largest Pro iPhone with titanium design and 5x telephoto camera',
+        specs: {
+          storage: '256GB',
+          color: 'Natural Titanium',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 15 Pro Max',
+          screen: '6.7" Super Retina XDR',
+          camera: '48MP Main Camera with 5x Telephoto',
+          processor: 'A17 Pro'
+        },
+        tags: ['iPhone', 'Apple', 'Pro Max', '256GB', 'Natural Titanium', 'New', 'A17 Pro'],
+        basePrice: 1199
+      },
+      'iphone 16': {
+        name: 'iPhone 16',
+        category: 'main',
+        description: 'Latest iPhone with A18 chip and enhanced camera system',
+        specs: {
+          storage: '128GB',
+          color: 'Blue',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 16',
+          screen: '6.1" Super Retina XDR',
+          camera: '48MP Main Camera',
+          processor: 'A18'
+        },
+        tags: ['iPhone', 'Apple', '128GB', 'Blue', 'New', 'A18'],
+        basePrice: 799
+      },
+      'iphone 16 pro': {
+        name: 'iPhone 16 Pro',
+        category: 'main',
+        description: 'Pro iPhone with titanium design and advanced camera system',
+        specs: {
+          storage: '128GB',
+          color: 'Natural Titanium',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 16 Pro',
+          screen: '6.1" Super Retina XDR',
+          camera: '48MP Main Camera',
+          processor: 'A18 Pro'
+        },
+        tags: ['iPhone', 'Apple', 'Pro', '128GB', 'Natural Titanium', 'New', 'A18 Pro'],
+        basePrice: 999
+      },
+      'iphone 16 pro max': {
+        name: 'iPhone 16 Pro Max',
+        category: 'main',
+        description: 'Largest Pro iPhone with titanium design and 5x telephoto camera',
+        specs: {
+          storage: '256GB',
+          color: 'Natural Titanium',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPhone 16 Pro Max',
+          screen: '6.7" Super Retina XDR',
+          camera: '48MP Main Camera with 5x Telephoto',
+          processor: 'A18 Pro'
+        },
+        tags: ['iPhone', 'Apple', 'Pro Max', '256GB', 'Natural Titanium', 'New', 'A18 Pro'],
+        basePrice: 1199
+      }
+    },
+    'ipad': {
+      'ipad air': {
+        name: 'iPad Air',
+        category: 'main',
+        description: 'Powerful iPad with M2 chip and all-day battery life',
+        specs: {
+          storage: '64GB',
+          color: 'Space Gray',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPad Air',
+          screen: '10.9" Liquid Retina',
+          processor: 'M2',
+          connectivity: 'Wi-Fi'
+        },
+        tags: ['iPad', 'Apple', 'Air', '64GB', 'Space Gray', 'New', 'M2'],
+        basePrice: 599
+      },
+      'ipad pro': {
+        name: 'iPad Pro',
+        category: 'main',
+        description: 'Most powerful iPad with M4 chip and Pro camera system',
+        specs: {
+          storage: '256GB',
+          color: 'Space Gray',
+          condition: 'New',
+          brand: 'Apple',
+          model: 'iPad Pro',
+          screen: '11" Liquid Retina XDR',
+          processor: 'M4',
+          connectivity: 'Wi-Fi'
+        },
+        tags: ['iPad', 'Apple', 'Pro', '256GB', 'Space Gray', 'New', 'M4'],
+        basePrice: 999
+      }
+    },
+    'samsung': {
+      'galaxy s24': {
+        name: 'Samsung Galaxy S24',
+        category: 'main',
+        description: 'Latest Samsung Galaxy with AI-powered features',
+        specs: {
+          storage: '128GB',
+          color: 'Onyx Black',
+          condition: 'New',
+          brand: 'Samsung',
+          model: 'Galaxy S24',
+          screen: '6.2" Dynamic AMOLED 2X',
+          camera: '50MP Main Camera',
+          processor: 'Snapdragon 8 Gen 3'
+        },
+        tags: ['Samsung', 'Galaxy', 'S24', '128GB', 'Onyx Black', 'New', 'Snapdragon'],
+        basePrice: 799
+      },
+      'galaxy s24 ultra': {
+        name: 'Samsung Galaxy S24 Ultra',
+        category: 'main',
+        description: 'Ultimate Samsung Galaxy with S Pen and advanced camera system',
+        specs: {
+          storage: '256GB',
+          color: 'Titanium Black',
+          condition: 'New',
+          brand: 'Samsung',
+          model: 'Galaxy S24 Ultra',
+          screen: '6.8" Dynamic AMOLED 2X',
+          camera: '200MP Main Camera with 10x Optical Zoom',
+          processor: 'Snapdragon 8 Gen 3'
+        },
+        tags: ['Samsung', 'Galaxy', 'S24 Ultra', '256GB', 'Titanium Black', 'New', 'S Pen'],
+        basePrice: 1199
+      }
+    }
+  }
+
+  // Autofill functions
+  const getAutofillSuggestions = (input: string) => {
+    if (input.length < 2) return []
+    
+    const suggestions: any[] = []
+    const lowerInput = input.toLowerCase()
+    
+    // Search through all product templates
+    Object.values(productTemplates).forEach(category => {
+      Object.values(category).forEach((product: any) => {
+        if (product.name.toLowerCase().includes(lowerInput) || 
+            product.tags.some((tag: string) => tag.toLowerCase().includes(lowerInput))) {
+          suggestions.push(product)
+        }
+      })
+    })
+    
+    return suggestions.slice(0, 5) // Limit to 5 suggestions
+  }
+
+  const handleProductNameChange = (value: string) => {
+    setCurrentProductName(value)
+    const suggestions = getAutofillSuggestions(value)
+    setAutofillSuggestions(suggestions)
+    setShowAutofillSuggestions(suggestions.length > 0)
+  }
+
+  const selectAutofillSuggestion = (suggestion: any) => {
+    // Fill form with suggestion data
+    setCurrentProductName(suggestion.name)
+    setShowAutofillSuggestions(false)
+    
+    // You can add more form field updates here
+    // For now, we'll just update the product name
+  }
 
   // Certificate validation system
   const validateCertificate = (certKey: string, deviceId: string) => {
@@ -393,7 +612,12 @@ export default function AdminDashboard() {
                 onCancel={() => {
                   setShowForm(false)
                   setEditingProduct(null)
+                  setShowAutofillSuggestions(false)
                 }}
+                autofillSuggestions={autofillSuggestions}
+                showAutofillSuggestions={showAutofillSuggestions}
+                onProductNameChange={handleProductNameChange}
+                onSelectAutofillSuggestion={selectAutofillSuggestion}
               />
             </div>
           </div>

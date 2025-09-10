@@ -23,9 +23,21 @@ interface ProductFormProps {
   product?: Product | null
   onSuccess: () => void
   onCancel: () => void
+  autofillSuggestions?: any[]
+  showAutofillSuggestions?: boolean
+  onProductNameChange?: (value: string) => void
+  onSelectAutofillSuggestion?: (suggestion: any) => void
 }
 
-export default function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
+export default function ProductForm({ 
+  product, 
+  onSuccess, 
+  onCancel, 
+  autofillSuggestions = [], 
+  showAutofillSuggestions = false, 
+  onProductNameChange, 
+  onSelectAutofillSuggestion 
+}: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
@@ -143,7 +155,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div className="relative">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Product Name *
             </label>
@@ -153,10 +165,51 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               name="name"
               required
               value={formData.name}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                handleInputChange(e)
+                onProductNameChange?.(e.target.value)
+              }}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               placeholder="e.g., iPhone 15 Pro"
             />
+            
+            {/* Autofill Suggestions */}
+            {showAutofillSuggestions && autofillSuggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {autofillSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      onSelectAutofillSuggestion?.(suggestion)
+                      setFormData(prev => ({
+                        ...prev,
+                        name: suggestion.name,
+                        brand: suggestion.specs.brand || '',
+                        model: suggestion.specs.model || '',
+                        description: suggestion.description || '',
+                        price: suggestion.basePrice?.toString() || '',
+                        specs: {
+                          ...prev.specs,
+                          display: suggestion.specs.screen || '',
+                          processor: suggestion.specs.processor || '',
+                          storage: suggestion.specs.storage || '',
+                          camera: suggestion.specs.camera || ''
+                        }
+                      }))
+                    }}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="font-medium text-gray-900">{suggestion.name}</div>
+                    <div className="text-sm text-gray-500">
+                      {suggestion.specs.brand} • {suggestion.specs.storage} • ${suggestion.basePrice}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {suggestion.tags.slice(0, 3).join(', ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
