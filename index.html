@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>PacMac Mobile - Inventory Admin</title>
     <style>
         * {
@@ -45,7 +48,6 @@
         
         .tab-btn {
             padding: 12px 24px;
-            background: white;
             border: 2px solid #e5e5e7;
             border-radius: 8px;
             cursor: pointer;
@@ -279,6 +281,7 @@
             <p>Please sign in to manage your product inventory, pricing, and images</p>
             <div style="margin-top: 20px;">
                 <button id="btn-login" class="btn" onclick="login()" style="margin-right: 10px;">🔐 Log in with GitHub</button>
+                <!-- Version: GitHub OAuth v1.0 -->
                 <button id="btn-logout" class="btn btn-secondary" onclick="logout()" style="display: none;">🚪 Log out</button>
             </div>
             <div id="user-info" style="margin-top: 15px; display: none;">
@@ -440,7 +443,7 @@
             constructor() {
                 this.isAuthenticated = false;
                 this.user = null;
-                this.githubClientId = 'YOUR_GITHUB_CLIENT_ID'; // Replace with your GitHub OAuth App Client ID
+                this.githubClientId = 'Ov23liUpCBalYyaLCv0K'; // Replace with your GitHub OAuth App Client ID
                 this.initializeAuth();
             }
 
