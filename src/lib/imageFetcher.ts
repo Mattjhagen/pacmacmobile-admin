@@ -1,49 +1,79 @@
 import axios from 'axios'
-import * as cheerio from 'cheerio'
 
-// interface ImageSearchResult {
-//   url: string
-//   title: string
-//   source: string
-// }
-
-// OEM website configurations
-const OEM_WEBSITES = {
+// Known image URL patterns for OEM sites
+const OEM_IMAGE_PATTERNS = {
   apple: {
-    baseUrl: 'https://www.apple.com',
-    searchPath: '/search',
-    imageSelectors: ['.product-image img', '.hero-image img', '.product-hero img'],
+    baseUrl: 'https://store.storeimages.cdn-apple.com',
+    patterns: [
+      '/4982/as-images.apple.com/is/iphone-15-pro-finish-select-{color}-{year}',
+      '/4982/as-images.apple.com/is/iphone-16-finish-select-{color}-{year}',
+      '/4982/as-images.apple.com/is/ipad-air-finish-select-{color}-{year}',
+      '/4982/as-images.apple.com/is/ipad-pro-finish-select-{color}-{year}'
+    ],
     fallbackUrls: [
-      'https://store.storeimages.cdn-apple.com',
-      'https://www.apple.com/v/iphone'
+      'https://www.apple.com/v/iphone/home/images/overview/hero/hero_iphone_15_pro__eqhxej1p7kaq_large.jpg',
+      'https://www.apple.com/v/iphone/home/images/overview/hero/hero_iphone_16__eqhxej1p7kaq_large.jpg'
     ]
   },
   samsung: {
-    baseUrl: 'https://www.samsung.com',
-    searchPath: '/us/search',
-    imageSelectors: ['.product-image img', '.hero-image img', '.product-hero img'],
+    baseUrl: 'https://images.samsung.com',
+    patterns: [
+      '/is/image/samsung/galaxy-s24-ultra-5g-{color}-sm-s928bzkdeua-front',
+      '/is/image/samsung/galaxy-s24-5g-{color}-sm-s921bzkdeua-front',
+      '/is/image/samsung/galaxy-s23-ultra-5g-{color}-sm-s918bzkdeua-front'
+    ],
     fallbackUrls: [
-      'https://images.samsung.com',
-      'https://www.samsung.com/us/smartphones'
+      'https://images.samsung.com/is/image/samsung/galaxy-s24-ultra-5g-titanium-gray-sm-s928bzkdeua-front',
+      'https://images.samsung.com/is/image/samsung/galaxy-s24-5g-cobalt-violet-sm-s921bzkdeua-front'
     ]
   },
   google: {
-    baseUrl: 'https://store.google.com',
-    searchPath: '/search',
-    imageSelectors: ['.product-image img', '.hero-image img', '.product-hero img'],
+    baseUrl: 'https://lh3.googleusercontent.com',
+    patterns: [
+      '/pixel-8-pro-{color}-hero',
+      '/pixel-8-{color}-hero',
+      '/pixel-7-pro-{color}-hero'
+    ],
     fallbackUrls: [
-      'https://lh3.googleusercontent.com',
-      'https://store.google.com/product'
-    ]
-  },
-  oneplus: {
-    baseUrl: 'https://www.oneplus.com',
-    searchPath: '/search',
-    imageSelectors: ['.product-image img', '.hero-image img', '.product-hero img'],
-    fallbackUrls: [
-      'https://www.oneplus.com/product'
+      'https://lh3.googleusercontent.com/pixel-8-pro-obsidian-hero',
+      'https://lh3.googleusercontent.com/pixel-8-hazel-hero'
     ]
   }
+}
+
+// Product image mapping for known devices
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  // iPhone 16 Series
+  'iphone 16 pro': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-16-pro-finish-select-natural-titanium-202409?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1723703843576',
+  'iphone 16 pro max': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-16-pro-max-finish-select-natural-titanium-202409?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1723703843576',
+  'iphone 16': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-16-finish-select-pink-202409?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1723703843576',
+  'iphone 16 plus': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-16-plus-finish-select-pink-202409?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1723703843576',
+  
+  // iPhone 15 Series
+  'iphone 15 pro': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-natural-titanium-202309?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1693009279824',
+  'iphone 15 pro max': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-finish-select-natural-titanium-202309?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1693009279824',
+  'iphone 15': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-finish-select-pink-202309?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1693009279824',
+  'iphone 15 plus': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-plus-finish-select-pink-202309?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1693009279824',
+  
+  // iPad Series
+  'ipad air': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-air-finish-select-blue-202403?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1709841208484',
+  'ipad pro': 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-finish-select-silver-202403?wid=5120&hei=3280&fmt=p-jpg&qlt=80&.v=1709841208484',
+  
+  // Samsung Galaxy S24 Series
+  'galaxy s24 ultra': 'https://images.samsung.com/is/image/samsung/galaxy-s24-ultra-5g-titanium-gray-sm-s928bzkdeua-front',
+  'galaxy s24': 'https://images.samsung.com/is/image/samsung/galaxy-s24-5g-cobalt-violet-sm-s921bzkdeua-front',
+  'galaxy s24+': 'https://images.samsung.com/is/image/samsung/galaxy-s24-plus-5g-cobalt-violet-sm-s926bzkdeua-front',
+  
+  // Samsung Galaxy S23 Series
+  'galaxy s23 ultra': 'https://images.samsung.com/is/image/samsung/galaxy-s23-ultra-5g-phantom-black-sm-s918bzkdeua-front',
+  'galaxy s23': 'https://images.samsung.com/is/image/samsung/galaxy-s23-5g-phantom-black-sm-s911bzkdeua-front',
+  'galaxy s23+': 'https://images.samsung.com/is/image/samsung/galaxy-s23-plus-5g-phantom-black-sm-s916bzkdeua-front',
+  
+  // Google Pixel Series
+  'pixel 8 pro': 'https://lh3.googleusercontent.com/pixel-8-pro-obsidian-hero',
+  'pixel 8': 'https://lh3.googleusercontent.com/pixel-8-hazel-hero',
+  'pixel 7 pro': 'https://lh3.googleusercontent.com/pixel-7-pro-obsidian-hero',
+  'pixel 7': 'https://lh3.googleusercontent.com/pixel-7-lemongrass-hero'
 }
 
 // Generic image search using multiple strategies
@@ -54,20 +84,25 @@ export async function fetchProductImage(
 ): Promise<string | null> {
   const normalizedBrand = brand.toLowerCase().trim()
   const normalizedModel = model.toLowerCase().trim()
+  const searchKey = `${normalizedModel}`.toLowerCase()
   
   try {
-    // Strategy 1: Try OEM-specific websites
-    const oemImage = await searchOEMWebsite(normalizedBrand, normalizedModel, productName)
+    // Strategy 1: Check direct product mapping
+    const directImage = PRODUCT_IMAGE_MAP[searchKey]
+    if (directImage) {
+      console.log(`Found direct image for ${brand} ${model}: ${directImage}`)
+      return directImage
+    }
+
+    // Strategy 2: Try OEM-specific patterns
+    const oemImage = await searchOEMPatterns(normalizedBrand, normalizedModel, productName)
     if (oemImage) return oemImage
 
-    // Strategy 2: Try generic product image search
-    const genericImage = await searchGenericProductImages(brand, model, productName)
-    if (genericImage) return genericImage
+    // Strategy 3: Try fallback URLs
+    const fallbackImage = await tryFallbackUrls(normalizedBrand, normalizedModel)
+    if (fallbackImage) return fallbackImage
 
-    // Strategy 3: Try stock photo services
-    const stockImage = await searchStockPhotos(brand, model)
-    if (stockImage) return stockImage
-
+    console.log(`No image found for ${brand} ${model}`)
     return null
   } catch (error) {
     console.error('Error fetching product image:', error)
@@ -75,89 +110,45 @@ export async function fetchProductImage(
   }
 }
 
-// Search OEM-specific websites
-async function searchOEMWebsite(brand: string, model: string, productName?: string): Promise<string | null> {
-  const oemConfig = OEM_WEBSITES[brand as keyof typeof OEM_WEBSITES]
+// Search OEM-specific patterns
+async function searchOEMPatterns(brand: string, model: string, productName?: string): Promise<string | null> {
+  const oemConfig = OEM_IMAGE_PATTERNS[brand as keyof typeof OEM_IMAGE_PATTERNS]
   if (!oemConfig) return null
 
   try {
-    // Try direct product page search
-    const searchQueries = [
-      `${brand} ${model}`,
-      productName || `${brand} ${model}`,
-      model
-    ]
-
-    for (const query of searchQueries) {
-      try {
-        const searchUrl = `${oemConfig.baseUrl}${oemConfig.searchPath}?q=${encodeURIComponent(query)}`
-        const response = await axios.get(searchUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-          },
-          timeout: 10000
-        })
-
-        const $ = cheerio.load(response.data)
-        
-        // Try different image selectors
-        for (const selector of oemConfig.imageSelectors) {
-          const imgElement = $(selector).first()
-          const src = imgElement.attr('src') || imgElement.attr('data-src')
-          
-          if (src && isValidImageUrl(src)) {
-            return makeAbsoluteUrl(src, oemConfig.baseUrl)
-          }
-        }
-      } catch (error) {
-        console.log(`Failed to search ${brand} website for ${model}:`, error)
-        continue
+    // Try known patterns for this brand
+    for (const pattern of oemConfig.patterns) {
+      const testUrl = `${oemConfig.baseUrl}${pattern}`
+      if (await isValidImageUrl(testUrl)) {
+        console.log(`Found valid OEM image for ${brand} ${model}: ${testUrl}`)
+        return testUrl
       }
     }
-
     return null
   } catch (error) {
-    console.error(`Error searching ${brand} website:`, error)
+    console.error(`Error searching ${brand} patterns:`, error)
     return null
   }
 }
 
-// Search generic product images
-async function searchGenericProductImages(brand: string, model: string, productName?: string): Promise<string | null> {
-  const searchQueries = [
-    `${brand} ${model} official product image`,
-    `${brand} ${model} product photo`,
-    `${brand} ${model} smartphone image`,
-    productName || `${brand} ${model}`
-  ]
+// Try fallback URLs for known brands
+async function tryFallbackUrls(brand: string, model: string): Promise<string | null> {
+  const oemConfig = OEM_IMAGE_PATTERNS[brand as keyof typeof OEM_IMAGE_PATTERNS]
+  if (!oemConfig) return null
 
-  for (const query of searchQueries) {
-    try {
-      // Use a simple image search approach
-      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=isz:m,itp:photo`
-      const response = await axios.get(searchUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        },
-        timeout: 10000
-      })
-
-      const $ = cheerio.load(response.data)
-      const images = $('img[src*="http"]')
-      
-      for (let i = 0; i < Math.min(images.length, 5); i++) {
-        const imgSrc = $(images[i]).attr('src')
-        if (imgSrc && isValidImageUrl(imgSrc) && !isGoogleImage(imgSrc)) {
-          return imgSrc
-        }
+  try {
+    // Try fallback URLs
+    for (const fallbackUrl of oemConfig.fallbackUrls) {
+      if (await isValidImageUrl(fallbackUrl)) {
+        console.log(`Found fallback image for ${brand} ${model}: ${fallbackUrl}`)
+        return fallbackUrl
       }
-    } catch (error) {
-      console.log(`Failed to search generic images for ${brand} ${model}:`, error)
-      continue
     }
+    return null
+  } catch (error) {
+    console.error(`Error trying fallback URLs for ${brand}:`, error)
+    return null
   }
-
-  return null
 }
 
 // Search stock photo services
@@ -177,19 +168,42 @@ async function searchStockPhotos(_brand: string, _model: string): Promise<string
   return null
 }
 
-// Utility functions
-function isValidImageUrl(url: string): boolean {
+// Utility function to check if image URL is valid
+async function isValidImageUrl(url: string): Promise<boolean> {
   if (!url || typeof url !== 'string') return false
   
-  // Check if it's a valid image URL
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
-  const hasImageExtension = imageExtensions.some(ext => url.toLowerCase().includes(ext))
-  
-  // Check if it's not a data URL or placeholder
-  const isNotDataUrl = !url.startsWith('data:')
-  const isNotPlaceholder = !url.includes('placeholder') && !url.includes('logo')
-  
-  return hasImageExtension && isNotDataUrl && isNotPlaceholder
+  try {
+    // Check if it's a valid URL
+    new URL(url)
+    
+    // Check if it's an image URL by extension or domain
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+    const hasImageExtension = imageExtensions.some(ext => url.toLowerCase().includes(ext))
+    
+    const imageDomains = [
+      'images.samsung.com',
+      'store.storeimages.cdn-apple.com',
+      'lh3.googleusercontent.com',
+      'images.apple.com',
+      'cdn.shopify.com'
+    ]
+    const hasImageDomain = imageDomains.some(domain => url.includes(domain))
+    
+    if (!hasImageExtension && !hasImageDomain) return false
+    
+    // Try to fetch the image to verify it exists
+    const response = await axios.head(url, {
+      timeout: 5000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    })
+    
+    return response.status === 200
+  } catch (error) {
+    console.log(`Image URL validation failed for ${url}:`, error)
+    return false
+  }
 }
 
 function isGoogleImage(url: string): boolean {
