@@ -1035,6 +1035,60 @@ export default function AdminDashboard() {
             >
               🔧 FIX SCOPE
             </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/simple-fix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: Simple fix applied!\n\nPut products directly in HTML and made grid visible.\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ⚡ SIMPLE FIX
+            </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/create-swipe-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`🎉 SUCCESS: Tinder-like swipe app created!\n\n✨ Features:\n• Swipe right to add to cart\n• Swipe left to pass\n• Touch and mouse support\n• Cart management\n• Checkout functionality\n\nCheck out pacmacmobile.com! 🚀`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              💕 SWIPE APP
+            </button>
           </div>
           {!githubToken && (
             <p className="text-sm text-red-600 mt-2">⚠️ Enter your GitHub token in the modal above to enable this fix</p>
