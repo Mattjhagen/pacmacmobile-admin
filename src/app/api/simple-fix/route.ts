@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create simple HTML for products
+    // Create simple HTML for products (TypeScript fix applied)
     let productsHTML = '';
     if (products.length > 0) {
       productsHTML = products.map((product: any) => `
