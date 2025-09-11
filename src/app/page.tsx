@@ -10,6 +10,9 @@ import ProductFilters from '@/components/ProductFilters'
 import UserRegistration from '@/components/UserRegistration'
 import UserLogin from '@/components/UserLogin'
 import LocationPicker from '@/components/LocationPicker'
+import IntroSplash from '@/components/IntroSplash'
+import FeatureShowcase from '@/components/FeatureShowcase'
+import WelcomeDashboard from '@/components/WelcomeDashboard'
 
 interface Product {
   id: string
@@ -75,6 +78,12 @@ export default function AdminDashboard() {
   const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [viewMode, setViewMode] = useState<'admin' | 'marketplace'>('admin')
   const [testingGithub, setTestingGithub] = useState(false)
+  
+  // Splash screen states
+  const [showIntroSplash, setShowIntroSplash] = useState(false)
+  const [showFeatureShowcase, setShowFeatureShowcase] = useState(false)
+  const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false)
+  const [hasSeenIntro, setHasSeenIntro] = useState(false)
 
   // Autofill system with product templates
   const productTemplates = {
@@ -419,11 +428,44 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token = localStorage.getItem('userToken')
     const user = localStorage.getItem('currentUser')
+    const seenIntro = localStorage.getItem('hasSeenIntro')
+    
     if (token && user) {
       setUserToken(token)
       setCurrentUser(JSON.parse(user))
     }
+    
+    if (!seenIntro) {
+      setShowIntroSplash(true)
+    }
   }, [])
+
+  // Splash screen handlers
+  const handleIntroComplete = () => {
+    setShowIntroSplash(false)
+    setHasSeenIntro(true)
+    localStorage.setItem('hasSeenIntro', 'true')
+  }
+
+  const handleIntroSkip = () => {
+    setShowIntroSplash(false)
+    setShowWelcomeDashboard(true)
+    setHasSeenIntro(true)
+    localStorage.setItem('hasSeenIntro', 'true')
+  }
+
+  const handleGetStarted = () => {
+    setShowWelcomeDashboard(false)
+    setViewMode('marketplace')
+  }
+
+  const handleExploreFeatures = () => {
+    setShowFeatureShowcase(true)
+  }
+
+  const handleFeatureShowcaseClose = () => {
+    setShowFeatureShowcase(false)
+  }
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
@@ -855,6 +897,12 @@ export default function AdminDashboard() {
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     Join Marketplace
+                  </button>
+                  <button
+                    onClick={() => setShowIntroSplash(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Take Tour
                   </button>
                 </div>
               )}
@@ -1528,6 +1576,28 @@ export default function AdminDashboard() {
             onLocationSelect={handleLocationSelect}
             onCancel={() => setShowLocationPicker(false)}
             initialLocation={currentUser?.location}
+          />
+        )}
+
+        {/* Splash Screens */}
+        {showIntroSplash && (
+          <IntroSplash
+            onGetStarted={handleIntroComplete}
+            onSkip={handleIntroSkip}
+          />
+        )}
+
+        {showWelcomeDashboard && (
+          <WelcomeDashboard
+            onGetStarted={handleGetStarted}
+            onExploreFeatures={handleExploreFeatures}
+            user={currentUser}
+          />
+        )}
+
+        {showFeatureShowcase && (
+          <FeatureShowcase
+            onClose={handleFeatureShowcaseClose}
           />
         )}
       </main>
