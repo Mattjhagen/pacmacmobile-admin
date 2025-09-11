@@ -893,18 +893,18 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* EMERGENCY FIX BANNER */}
-      <div className="bg-red-100 border-l-4 border-red-500 p-4">
+      {/* SWIPE APP BANNER */}
+      <div className="bg-gradient-to-r from-pink-100 to-purple-100 border-l-4 border-pink-500 p-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-red-800">🚨 EMERGENCY FIX NEEDED</h3>
-              <p className="text-red-700">Products not showing on pacmacmobile.com? Missing scripts need to be fixed!</p>
+              <h3 className="text-lg font-bold text-pink-800">💕 NEW SWIPE APP READY!</h3>
+              <p className="text-pink-700">Transform your site into a fun Tinder-like shopping experience!</p>
             </div>
             <button
               onClick={async () => {
                 try {
-                  const response = await fetch('/api/fix-missing-scripts', {
+                  const response = await fetch('/api/create-swipe-app', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -914,7 +914,7 @@ export default function AdminDashboard() {
                   })
                   const result = await response.json()
                   if (result.success) {
-                    alert(`✅ SUCCESS: Missing scripts added to main site!\n\nFiles added:\n- config.js\n- inventory-api.js\n\nProducts should now display on pacmacmobile.com!`)
+                    alert(`🎉 SUCCESS: Tinder-like swipe app created!\n\n✨ Features:\n• Swipe right to add to cart\n• Swipe left to pass\n• Touch and mouse support\n• Cart management\n• Checkout functionality\n\nCheck out pacmacmobile.com! 🚀`)
                   } else {
                     alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
                   }
@@ -923,9 +923,9 @@ export default function AdminDashboard() {
                 }
               }}
               disabled={!githubToken}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              🔧 FIX MISSING SCRIPTS
+              💕 CREATE SWIPE APP
             </button>
             
             <button
@@ -1034,33 +1034,6 @@ export default function AdminDashboard() {
               className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               🔧 FIX SCOPE
-            </button>
-            
-            <button
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/simple-fix', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      githubToken: githubToken,
-                      repository: 'Mattjhagen/New-PacMac'
-                    })
-                  })
-                  const result = await response.json()
-                  if (result.success) {
-                    alert(`✅ SUCCESS: Simple fix applied!\n\nPut products directly in HTML and made grid visible.\n\nProducts should now display on pacmacmobile.com!`)
-                  } else {
-                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
-                  }
-                } catch (error) {
-                  alert(`❌ ERROR: ${error}`)
-                }
-              }}
-              disabled={!githubToken}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ⚡ SIMPLE FIX
             </button>
             
             <button
