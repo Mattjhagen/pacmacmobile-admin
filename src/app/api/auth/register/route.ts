@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     users.push(newUser)
 
     // Return user without password
-    const { password, ...userWithoutPassword } = newUser as any
+    const { password: _, ...userWithoutPassword } = newUser
     return NextResponse.json({
       success: true,
       user: userWithoutPassword,

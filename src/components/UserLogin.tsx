@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { UserLogin } from '@/types/User'
 
 interface UserLoginProps {
-  onSuccess: (user: any, token: string) => void
+  onSuccess: (user: { id: string; name: string; email: string; location?: string }, token: string) => void
   onCancel: () => void
   onSwitchToRegister: () => void
 }
@@ -46,7 +46,7 @@ export default function UserLogin({ onSuccess, onCancel, onSwitchToRegister }: U
       } else {
         setError(result.error || 'Login failed')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
@@ -168,7 +168,7 @@ export default function UserLogin({ onSuccess, onCancel, onSwitchToRegister }: U
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <button
               onClick={onSwitchToRegister}
               className="font-medium text-blue-600 hover:text-blue-500"

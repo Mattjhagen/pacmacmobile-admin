@@ -22,9 +22,11 @@ interface ProductCardProps {
   product: Product
   onEdit: (product: Product) => void
   onDelete: (id: string) => void
+  onAddToCart?: (product: Product) => void
+  showAddToCart?: boolean
 }
 
-export default function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
+export default function ProductCard({ product, onEdit, onDelete, onAddToCart, showAddToCart = false }: ProductCardProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -137,20 +139,31 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
 
         {/* Action Buttons */}
         <div className="flex space-x-2">
-          <button
-            onClick={() => onEdit(product)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <PencilIcon className="h-4 w-4 mr-1" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(product.id)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            <TrashIcon className="h-4 w-4 mr-1" />
-            Delete
-          </button>
+          {showAddToCart && onAddToCart ? (
+            <button
+              onClick={() => onAddToCart(product)}
+              className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              🛒 Add to Cart
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => onEdit(product)}
+                className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <PencilIcon className="h-4 w-4 mr-1" />
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete(product.id)}
+                className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                <TrashIcon className="h-4 w-4 mr-1" />
+                Delete
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

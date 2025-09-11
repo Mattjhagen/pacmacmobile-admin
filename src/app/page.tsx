@@ -13,6 +13,7 @@ import LocationPicker from '@/components/LocationPicker'
 import IntroSplash from '@/components/IntroSplash'
 import FeatureShowcase from '@/components/FeatureShowcase'
 import WelcomeDashboard from '@/components/WelcomeDashboard'
+import CheckoutModal from '@/components/CheckoutModal'
 
 interface Product {
   id: string
@@ -71,8 +72,8 @@ export default function AdminDashboard() {
   const [pushingToGithub, setPushingToGithub] = useState(false)
   
   // User authentication state
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [userToken, setUserToken] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string; location?: string } | null>(null)
+  const [, setUserToken] = useState<string | null>(null)
   const [showUserLogin, setShowUserLogin] = useState(false)
   const [showUserRegister, setShowUserRegister] = useState(false)
   const [showLocationPicker, setShowLocationPicker] = useState(false)
@@ -84,6 +85,8 @@ export default function AdminDashboard() {
   const [showFeatureShowcase, setShowFeatureShowcase] = useState(false)
   const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false)
   const [hasSeenIntro, setHasSeenIntro] = useState(false)
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [cart, setCart] = useState<Product[]>([])
 
   // Autofill system with product templates
   const productTemplates = {
@@ -352,9 +355,9 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-  }
+  // const handleLogout = () => {
+  //   setIsAuthenticated(false)
+  // }
 
   const fetchProducts = async () => {
     try {
@@ -393,7 +396,7 @@ export default function AdminDashboard() {
   }
 
   // User authentication handlers
-  const handleUserLogin = (user: any, token: string) => {
+  const handleUserLogin = (user: { id: string; name: string; email: string; location?: string }, token: string) => {
     setCurrentUser(user)
     setUserToken(token)
     setShowUserLogin(false)
@@ -401,7 +404,7 @@ export default function AdminDashboard() {
     localStorage.setItem('currentUser', JSON.stringify(user))
   }
 
-  const handleUserRegister = (user: any) => {
+  const handleUserRegister = (user: { id: string; name: string; email: string; location?: string }) => {
     setCurrentUser(user)
     setShowUserRegister(false)
     setShowLocationPicker(true)
@@ -414,7 +417,7 @@ export default function AdminDashboard() {
     localStorage.removeItem('currentUser')
   }
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = (location: { address: string; coordinates: { lat: number; lng: number } }) => {
     if (currentUser) {
       // Update user location
       const updatedUser = { ...currentUser, location }
@@ -465,6 +468,21 @@ export default function AdminDashboard() {
 
   const handleFeatureShowcaseClose = () => {
     setShowFeatureShowcase(false)
+  }
+
+  // Cart and checkout functions
+  const addToCart = (product: Product) => {
+    setCart(prev => [...prev, product])
+  }
+
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(item => item.id !== productId))
+  }
+
+  const handleCheckoutSuccess = () => {
+    setCart([])
+    setShowCheckout(false)
+    // You can add success notification here
   }
 
   const handleEditProduct = (product: Product) => {
@@ -904,6 +922,14 @@ export default function AdminDashboard() {
                   >
                     Take Tour
                   </button>
+                  {cart.length > 0 && (
+                    <button
+                      onClick={() => setShowCheckout(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 relative"
+                    >
+                      🛒 Cart ({cart.length})
+                    </button>
+                  )}
                 </div>
               )}
               
@@ -1487,6 +1513,8 @@ export default function AdminDashboard() {
                       product={product}
                       onEdit={handleEditProduct}
                       onDelete={handleDeleteProduct}
+                      onAddToCart={viewMode === 'marketplace' ? addToCart : undefined}
+                      showAddToCart={viewMode === 'marketplace'}
                     />
                   ))}
               </div>
@@ -1600,6 +1628,14 @@ export default function AdminDashboard() {
             onClose={handleFeatureShowcaseClose}
           />
         )}
+
+        {/* Checkout Modal */}
+        <CheckoutModal
+          isOpen={showCheckout}
+          onClose={() => setShowCheckout(false)}
+          cartItems={cart}
+          onPaymentSuccess={handleCheckoutSuccess}
+        />
       </main>
     </div>
   )

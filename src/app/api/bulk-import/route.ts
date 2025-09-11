@@ -72,7 +72,7 @@ async function getProductImage(manufacturer: string, model: string, color: strin
         if (response.ok) {
           return appleCdnUrl
         }
-      } catch (e) {
+      } catch {
         // Fall back to Google Images search
       }
       

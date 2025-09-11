@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { UserRegistration } from '@/types/User'
 
 interface UserRegistrationProps {
-  onSuccess: (user: any) => void
+  onSuccess: (user: { id: string; name: string; email: string; location?: string }) => void
   onCancel: () => void
 }
 
@@ -70,7 +70,7 @@ export default function UserRegistration({ onSuccess, onCancel }: UserRegistrati
       } else {
         setError(result.error || 'Registration failed')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)

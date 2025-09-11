@@ -111,7 +111,7 @@ export async function fetchProductImage(
 }
 
 // Search OEM-specific patterns
-async function searchOEMPatterns(brand: string, model: string, productName?: string): Promise<string | null> {
+async function searchOEMPatterns(brand: string, model: string, _productName?: string): Promise<string | null> {
   const oemConfig = OEM_IMAGE_PATTERNS[brand as keyof typeof OEM_IMAGE_PATTERNS]
   if (!oemConfig) return null
 
@@ -206,16 +206,16 @@ async function isValidImageUrl(url: string): Promise<boolean> {
   }
 }
 
-function isGoogleImage(url: string): boolean {
-  return url.includes('googleusercontent.com') || url.includes('google.com')
-}
+// function isGoogleImage(url: string): boolean {
+//   return url.includes('googleusercontent.com') || url.includes('google.com')
+// }
 
-function makeAbsoluteUrl(url: string, baseUrl: string): string {
-  if (url.startsWith('http')) return url
-  if (url.startsWith('//')) return `https:${url}`
-  if (url.startsWith('/')) return `${baseUrl}${url}`
-  return `${baseUrl}/${url}`
-}
+// function makeAbsoluteUrl(url: string, baseUrl: string): string {
+//   if (url.startsWith('http')) return url
+//   if (url.startsWith('//')) return `https:${url}`
+//   if (url.startsWith('/')) return `${baseUrl}${url}`
+//   return `${baseUrl}/${url}`
+// }
 
 // Batch image fetching for multiple products
 export async function fetchMultipleProductImages(

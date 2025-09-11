@@ -204,7 +204,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
     onFiltersChange(filteredProducts)
   }, [filters, products, onFiltersChange])
 
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = (key: keyof FilterState, value: string | number | boolean) => {
     setFilters(prev => ({
       ...prev,
       [key]: value

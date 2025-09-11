@@ -4,7 +4,18 @@ import jwt from 'jsonwebtoken'
 import { UserLogin } from '@/types/User'
 
 // In-memory storage for demo (replace with database in production)
-const users: any[] = []
+interface StoredUser {
+  id: string
+  email: string
+  password: string
+  name: string
+  username: string
+  location?: string
+  createdAt: string
+  lastLoginAt?: string
+}
+
+const users: StoredUser[] = []
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,7 +62,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Return user without password
-    const { password, ...userWithoutPassword } = user
+    const { password: _, ...userWithoutPassword } = user
 
     return NextResponse.json({
       success: true,

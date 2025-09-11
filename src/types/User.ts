@@ -82,7 +82,7 @@ export interface ProductListing {
     price: number
     description: string
     images: string[]
-    specs: Record<string, any>
+    specs: Record<string, string | number | boolean>
     condition: 'new' | 'like-new' | 'good' | 'fair' | 'poor'
     category: string
     tags: string[]

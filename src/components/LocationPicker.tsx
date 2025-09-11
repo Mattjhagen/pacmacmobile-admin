@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { LocationData } from '@/types/User'
 
 interface LocationPickerProps {
@@ -20,8 +20,8 @@ export default function LocationPicker({ onLocationSelect, onCancel, initialLoca
   })
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [useCurrentLocation, setUseCurrentLocation] = useState(false)
+  const [, setError] = useState<string | null>(null)
+  const [, setUseCurrentLocation] = useState(false)
 
   const handleInputChange = (field: keyof LocationData, value: string) => {
     setLocation(prev => ({
@@ -94,7 +94,7 @@ export default function LocationPicker({ onLocationSelect, onCancel, initialLoca
       } else {
         setError(result.error || 'Failed to geocode address')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
