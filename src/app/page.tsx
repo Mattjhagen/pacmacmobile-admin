@@ -981,6 +981,33 @@ export default function AdminDashboard() {
             >
               🎯 FIX DISPLAY
             </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/final-fix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: Final fix applied!\n\nRemoved all API calls that could overwrite PRODUCTS array.\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🚀 FINAL FIX
+            </button>
           </div>
           {!githubToken && (
             <p className="text-sm text-red-600 mt-2">⚠️ Enter your GitHub token in the modal above to enable this fix</p>
