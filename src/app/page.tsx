@@ -267,7 +267,7 @@ export default function AdminDashboard() {
     setShowAutofillSuggestions(suggestions.length > 0)
   }
 
-  const selectAutofillSuggestion = (_suggestion: ProductTemplate) => {
+  const selectAutofillSuggestion = () => {
     // Fill form with suggestion data
     setShowAutofillSuggestions(false)
     

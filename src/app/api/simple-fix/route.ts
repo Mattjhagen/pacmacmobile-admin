@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Create simple HTML for products
     let productsHTML = '';
     if (products.length > 0) {
-      productsHTML = products.map(product => `
+      productsHTML = products.map((product: any) => `
         <article class="card">
           <div class="card-front">
             <div class="flip-indicator">Click to see specs</div>
