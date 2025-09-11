@@ -1008,6 +1008,33 @@ export default function AdminDashboard() {
             >
               🚀 FINAL FIX
             </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/fix-products-scope', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      githubToken: githubToken,
+                      repository: 'Mattjhagen/New-PacMac'
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`✅ SUCCESS: PRODUCTS scope fixed!\n\nMade PRODUCTS array global so functions can access it.\n\nProducts should now display on pacmacmobile.com!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              disabled={!githubToken}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🔧 FIX SCOPE
+            </button>
           </div>
           {!githubToken && (
             <p className="text-sm text-red-600 mt-2">⚠️ Enter your GitHub token in the modal above to enable this fix</p>
