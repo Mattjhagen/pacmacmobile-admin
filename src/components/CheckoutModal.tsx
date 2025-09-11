@@ -32,7 +32,7 @@ export default function CheckoutModal({
   const tax = subtotal * 0.07; // 7% tax
   const total = subtotal + tax;
 
-  const handlePaymentSuccess = (paymentIntent: any) => {
+  const handlePaymentSuccess = (paymentIntent: { id: string; status: string }) => {
     console.log('Payment successful:', paymentIntent);
     setStep('success');
     onPaymentSuccess();

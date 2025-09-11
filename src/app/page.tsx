@@ -21,9 +21,23 @@ interface Product {
   brand: string
   model: string
   price: number
-  description?: string
+  description: string
   imageUrl?: string
-  specs?: Record<string, unknown>
+  img: string
+  tags: string[]
+  specs: {
+    display?: string
+    processor?: string
+    memory?: string
+    storage?: string
+    camera?: string
+    battery?: string
+    os?: string
+    color?: string
+    carrier?: string
+    lockStatus?: string
+    grade?: string
+  }
   inStock: boolean
   stockCount: number
   category: string
@@ -72,8 +86,8 @@ export default function AdminDashboard() {
   const [pushingToGithub, setPushingToGithub] = useState(false)
   
   // User authentication state
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string; location?: string } | null>(null)
-  const [, setUserToken] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string; firstName?: string; lastName?: string; location?: { city: string; state: string } } | null>(null)
+  const [userToken, setUserToken] = useState<string | null>(null)
   const [showUserLogin, setShowUserLogin] = useState(false)
   const [showUserRegister, setShowUserRegister] = useState(false)
   const [showLocationPicker, setShowLocationPicker] = useState(false)
@@ -86,7 +100,7 @@ export default function AdminDashboard() {
   const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false)
   const [hasSeenIntro, setHasSeenIntro] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
-  const [cart, setCart] = useState<Product[]>([])
+  const [cart, setCart] = useState<{ id: string; name: string; price: number; qty: number }[]>([])
 
   // Autofill system with product templates
   const productTemplates = {
@@ -355,9 +369,9 @@ export default function AdminDashboard() {
     }
   }
 
-  // const handleLogout = () => {
-  //   setIsAuthenticated(false)
-  // }
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+  }
 
   const fetchProducts = async () => {
     try {
@@ -396,7 +410,7 @@ export default function AdminDashboard() {
   }
 
   // User authentication handlers
-  const handleUserLogin = (user: { id: string; name: string; email: string; location?: string }, token: string) => {
+  const handleUserLogin = (user: { id: string; name: string; email: string; location?: { city: string; state: string } }, token: string) => {
     setCurrentUser(user)
     setUserToken(token)
     setShowUserLogin(false)
@@ -404,7 +418,7 @@ export default function AdminDashboard() {
     localStorage.setItem('currentUser', JSON.stringify(user))
   }
 
-  const handleUserRegister = (user: { id: string; name: string; email: string; location?: string }) => {
+  const handleUserRegister = (user: { id: string; name: string; email: string; location?: { city: string; state: string } }) => {
     setCurrentUser(user)
     setShowUserRegister(false)
     setShowLocationPicker(true)
@@ -419,8 +433,12 @@ export default function AdminDashboard() {
 
   const handleLocationSelect = (location: { address: string; coordinates: { lat: number; lng: number } }) => {
     if (currentUser) {
-      // Update user location
-      const updatedUser = { ...currentUser, location }
+      // Update user location - transform to match expected format
+      const locationData = {
+        city: location.address.split(',')[0] || '',
+        state: location.address.split(',')[1]?.trim() || ''
+      }
+      const updatedUser = { ...currentUser, location: locationData }
       setCurrentUser(updatedUser)
       localStorage.setItem('currentUser', JSON.stringify(updatedUser))
     }
@@ -472,7 +490,13 @@ export default function AdminDashboard() {
 
   // Cart and checkout functions
   const addToCart = (product: Product) => {
-    setCart(prev => [...prev, product])
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      qty: 1
+    }
+    setCart(prev => [...prev, cartItem])
   }
 
   const removeFromCart = (productId: string) => {
@@ -1603,7 +1627,7 @@ export default function AdminDashboard() {
           <LocationPicker
             onLocationSelect={handleLocationSelect}
             onCancel={() => setShowLocationPicker(false)}
-            initialLocation={currentUser?.location}
+            initialLocation={undefined}
           />
         )}
 
@@ -1619,7 +1643,7 @@ export default function AdminDashboard() {
           <WelcomeDashboard
             onGetStarted={handleGetStarted}
             onExploreFeatures={handleExploreFeatures}
-            user={currentUser}
+            user={currentUser || undefined}
           />
         )}
 

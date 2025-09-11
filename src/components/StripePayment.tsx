@@ -13,7 +13,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 interface PaymentFormProps {
   amount: number;
-  onSuccess: (paymentIntent: any) => void;
+  onSuccess: (paymentIntent: { id: string; status: string }) => void;
   onError: (error: string) => void;
   metadata?: Record<string, string>;
 }
@@ -123,7 +123,7 @@ function PaymentForm({ amount, onSuccess, onError, metadata }: PaymentFormProps)
 
 interface StripePaymentProps {
   amount: number;
-  onSuccess: (paymentIntent: any) => void;
+  onSuccess: (paymentIntent: { id: string; status: string }) => void;
   onError: (error: string) => void;
   metadata?: Record<string, string>;
 }

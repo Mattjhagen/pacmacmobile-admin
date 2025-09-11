@@ -17,7 +17,7 @@ import {
 interface WelcomeDashboardProps {
   onGetStarted: () => void
   onExploreFeatures: () => void
-  user?: any
+  user?: { id: string; name: string; email: string; firstName?: string; lastName?: string }
 }
 
 export default function WelcomeDashboard({ onGetStarted, onExploreFeatures, user }: WelcomeDashboardProps) {

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { UserRegistration } from '@/types/User'
+import type { UserRegistration } from '@/types/User'
 
 interface UserRegistrationProps {
-  onSuccess: (user: { id: string; name: string; email: string; location?: string }) => void
+  onSuccess: (user: { id: string; name: string; email: string; location?: { city: string; state: string } }) => void
   onCancel: () => void
 }
 
@@ -37,7 +37,7 @@ export default function UserRegistration({ onSuccess, onCancel }: UserRegistrati
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as Record<string, unknown> || {}),
           [child]: value
         }
       }))
@@ -70,7 +70,8 @@ export default function UserRegistration({ onSuccess, onCancel }: UserRegistrati
       } else {
         setError(result.error || 'Registration failed')
       }
-    } catch {
+    } catch (err) {
+      console.error('Registration error:', err)
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)

@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react'
 interface Product {
   id: string
   name: string
-  price: number
-  tags: string[]
-  img: string
-  description: string
   brand: string
   model: string
+  price: number
+  description: string
+  imageUrl?: string
+  img: string
+  tags: string[]
   specs: {
     display?: string
     processor?: string
@@ -26,6 +27,9 @@ interface Product {
   }
   inStock: boolean
   stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface FilterState {
@@ -63,7 +67,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract unique values for filter options
-  const getUniqueValues = (key: keyof Product | 'category' | 'os', products: Product[]) => {
+  const getUniqueValues = (key: keyof Product | 'category' | 'os' | 'storage' | 'color' | 'carrier' | 'lockStatus' | 'grade', products: Product[]) => {
     const values = new Set<string>()
     
     products.forEach(product => {
@@ -204,7 +208,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
     onFiltersChange(filteredProducts)
   }, [filters, products, onFiltersChange])
 
-  const updateFilter = (key: keyof FilterState, value: string | number | boolean) => {
+  const updateFilter = (key: keyof FilterState, value: string[] | [number, number] | boolean | null) => {
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -252,12 +256,14 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
     options, 
     selected, 
     onChange, 
-    maxItems = 5 
+    maxItems = 5,
+    title
   }: { 
     options: string[], 
     selected: string[], 
     onChange: (value: string[]) => void,
-    maxItems?: number
+    maxItems?: number,
+    title: string
   }) => {
     const [showAll, setShowAll] = useState(false)
     const displayOptions = showAll ? options : options.slice(0, maxItems)
@@ -359,6 +365,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={categories}
               selected={filters.category}
               onChange={(value) => updateFilter('category', value)}
+              title="Category"
             />
           </FilterSection>
 
@@ -368,6 +375,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={brands}
               selected={filters.brand}
               onChange={(value) => updateFilter('brand', value)}
+              title="Brand"
             />
           </FilterSection>
 
@@ -377,6 +385,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={osOptions}
               selected={filters.os}
               onChange={(value) => updateFilter('os', value)}
+              title="OS"
             />
           </FilterSection>
 
@@ -415,6 +424,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={colors}
               selected={filters.color}
               onChange={(value) => updateFilter('color', value)}
+              title="Color"
             />
           </FilterSection>
 
@@ -424,6 +434,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={storageOptions}
               selected={filters.storage}
               onChange={(value) => updateFilter('storage', value)}
+              title="Storage"
             />
           </FilterSection>
 
@@ -433,6 +444,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={carriers}
               selected={filters.carrier}
               onChange={(value) => updateFilter('carrier', value)}
+              title="Carrier"
             />
           </FilterSection>
 
@@ -442,6 +454,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={lockStatuses}
               selected={filters.lockStatus}
               onChange={(value) => updateFilter('lockStatus', value)}
+              title="Lock Status"
             />
           </FilterSection>
 
@@ -451,6 +464,7 @@ export default function ProductFilters({ products, onFiltersChange }: ProductFil
               options={grades}
               selected={filters.grade}
               onChange={(value) => updateFilter('grade', value)}
+              title="Grade"
             />
           </FilterSection>
 

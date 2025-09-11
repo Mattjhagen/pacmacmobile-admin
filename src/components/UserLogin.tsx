@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { UserLogin } from '@/types/User'
+import type { UserLogin } from '@/types/User'
 
 interface UserLoginProps {
-  onSuccess: (user: { id: string; name: string; email: string; location?: string }, token: string) => void
+  onSuccess: (user: { id: string; name: string; email: string; location?: { city: string; state: string } }, token: string) => void
   onCancel: () => void
   onSwitchToRegister: () => void
 }
@@ -46,7 +46,8 @@ export default function UserLogin({ onSuccess, onCancel, onSwitchToRegister }: U
       } else {
         setError(result.error || 'Login failed')
       }
-    } catch {
+    } catch (err) {
+      console.error('Login error:', err)
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)

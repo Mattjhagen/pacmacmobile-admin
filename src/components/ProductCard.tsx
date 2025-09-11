@@ -8,9 +8,23 @@ interface Product {
   brand: string
   model: string
   price: number
-  description?: string
+  description: string
   imageUrl?: string
-  specs?: Record<string, unknown>
+  img: string
+  tags: string[]
+  specs: {
+    display?: string
+    processor?: string
+    memory?: string
+    storage?: string
+    camera?: string
+    battery?: string
+    os?: string
+    color?: string
+    carrier?: string
+    lockStatus?: string
+    grade?: string
+  }
   inStock: boolean
   stockCount: number
   category: string

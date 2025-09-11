@@ -20,8 +20,8 @@ export default function LocationPicker({ onLocationSelect, onCancel, initialLoca
   })
 
   const [loading, setLoading] = useState(false)
-  const [, setError] = useState<string | null>(null)
-  const [, setUseCurrentLocation] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false)
 
   const handleInputChange = (field: keyof LocationData, value: string) => {
     setLocation(prev => ({
@@ -58,7 +58,8 @@ export default function LocationPicker({ onLocationSelect, onCancel, initialLoca
         }))
         setLoading(false)
       },
-      (error) => {
+      (err) => {
+        console.error('Geolocation error:', err)
         setError('Unable to retrieve your location. Please enter it manually.')
         setLoading(false)
       }

@@ -27,12 +27,13 @@ interface InventoryItem {
 interface Product {
   id: string
   name: string
-  price: number
-  tags: string[]
-  img: string
-  description: string
   brand: string
   model: string
+  price: number
+  description?: string
+  imageUrl?: string
+  img?: string
+  tags: string[]
   specs: {
     display?: string
     processor?: string
@@ -48,6 +49,9 @@ interface Product {
   }
   inStock: boolean
   stockCount: number
+  category: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Function to generate product image URL
@@ -252,15 +256,19 @@ async function convertToProduct(item: InventoryItem): Promise<Product> {
   return {
     id,
     name,
-    price,
-    tags,
-    img,
-    description,
     brand: item.manufacturer,
     model: item.model,
+    price,
+    description,
+    imageUrl: img,
+    img: img,
+    tags,
     specs,
     inStock: stockCount > 0,
-    stockCount
+    stockCount,
+    category: item.category.toLowerCase(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
 }
 
@@ -302,8 +310,8 @@ export async function POST(request: NextRequest) {
         if (i % 5 === 0) {
           await new Promise(resolve => setTimeout(resolve, 100))
         }
-      } catch (error) {
-        const errorMsg = `Error processing item ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      } catch (e) {
+        const errorMsg = `Error processing item ${i + 1}: ${e instanceof Error ? e.message : 'Unknown error'}`
         console.error(errorMsg)
         errors.push(errorMsg)
       }

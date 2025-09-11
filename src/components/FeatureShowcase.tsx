@@ -288,7 +288,7 @@ export default function FeatureShowcase({ onClose }: FeatureShowcaseProps) {
                           <span className="font-semibold text-gray-900">John Doe</span>
                           <span className="text-sm text-gray-500">2 min ago</span>
                         </div>
-                        <p className="text-gray-700">Hi! I'm interested in the iPhone 15 Pro. Is it still available?</p>
+                        <p className="text-gray-700">Hi! I&apos;m interested in the iPhone 15 Pro. Is it still available?</p>
                       </div>
                       <div className="relative">
                         <input

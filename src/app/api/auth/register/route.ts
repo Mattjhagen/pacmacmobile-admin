@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(body.password, 12)
+    await bcrypt.hash(body.password, 12)
 
     // Create new user
     const newUser: User = {
@@ -65,11 +65,10 @@ export async function POST(request: NextRequest) {
     // Store user (in production, save to database)
     users.push(newUser)
 
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = newUser
+    // Return user (password is not stored in the user object)
     return NextResponse.json({
       success: true,
-      user: userWithoutPassword,
+      user: newUser,
       message: 'User registered successfully'
     })
 
