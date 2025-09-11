@@ -7,6 +7,9 @@ import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
 import ImportModal from '@/components/ImportModal'
 import ProductFilters from '@/components/ProductFilters'
+import UserRegistration from '@/components/UserRegistration'
+import UserLogin from '@/components/UserLogin'
+import LocationPicker from '@/components/LocationPicker'
 
 interface Product {
   id: string
@@ -63,6 +66,14 @@ export default function AdminDashboard() {
   const [githubToken, setGithubToken] = useState('')
   const [showGithubForm, setShowGithubForm] = useState(false)
   const [pushingToGithub, setPushingToGithub] = useState(false)
+  
+  // User authentication state
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [userToken, setUserToken] = useState<string | null>(null)
+  const [showUserLogin, setShowUserLogin] = useState(false)
+  const [showUserRegister, setShowUserRegister] = useState(false)
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [viewMode, setViewMode] = useState<'admin' | 'marketplace'>('admin')
   const [testingGithub, setTestingGithub] = useState(false)
 
   // Autofill system with product templates
@@ -371,6 +382,48 @@ export default function AdminDashboard() {
     setShowImportModal(false)
     fetchProducts()
   }
+
+  // User authentication handlers
+  const handleUserLogin = (user: any, token: string) => {
+    setCurrentUser(user)
+    setUserToken(token)
+    setShowUserLogin(false)
+    localStorage.setItem('userToken', token)
+    localStorage.setItem('currentUser', JSON.stringify(user))
+  }
+
+  const handleUserRegister = (user: any) => {
+    setCurrentUser(user)
+    setShowUserRegister(false)
+    setShowLocationPicker(true)
+  }
+
+  const handleUserLogout = () => {
+    setCurrentUser(null)
+    setUserToken(null)
+    localStorage.removeItem('userToken')
+    localStorage.removeItem('currentUser')
+  }
+
+  const handleLocationSelect = (location: any) => {
+    if (currentUser) {
+      // Update user location
+      const updatedUser = { ...currentUser, location }
+      setCurrentUser(updatedUser)
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+    }
+    setShowLocationPicker(false)
+  }
+
+  // Check for existing user session on load
+  useEffect(() => {
+    const token = localStorage.getItem('userToken')
+    const user = localStorage.getItem('currentUser')
+    if (token && user) {
+      setUserToken(token)
+      setCurrentUser(JSON.parse(user))
+    }
+  }, [])
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
@@ -729,18 +782,92 @@ export default function AdminDashboard() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-              <p className="text-gray-600">Manage your phone inventory.</p>
+            <div className="flex items-center space-x-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {viewMode === 'admin' ? 'Admin Portal' : 'PacMac Marketplace'}
+                </h1>
+                <p className="text-gray-600">
+                  {viewMode === 'admin' ? 'Manage your phone inventory.' : 'Buy and sell phones in your area.'}
+                </p>
+              </div>
+              
+              {/* View Mode Toggle */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('admin')}
+                  className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === 'admin'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Admin
+                </button>
+                <button
+                  onClick={() => setViewMode('marketplace')}
+                  className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === 'marketplace'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Marketplace
+                </button>
+              </div>
             </div>
+            
             <div className="flex items-center gap-4">
-              <p className="text-gray-600">Welcome, admin!</p>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Sign Out
-              </button>
+              {currentUser ? (
+                <div className="flex items-center space-x-4">
+                  {/* User Location Display */}
+                  {currentUser.location && (
+                    <div className="text-sm text-gray-600">
+                      📍 {currentUser.location.city}, {currentUser.location.state}
+                    </div>
+                  )}
+                  
+                  {/* User Menu */}
+                  <div className="flex items-center space-x-2 text-sm text-gray-700">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                      {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
+                    </div>
+                    <span>{currentUser.firstName} {currentUser.lastName}</span>
+                  </div>
+                  
+                  <button
+                    onClick={handleUserLogout}
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowUserLogin(true)}
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setShowUserRegister(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Join Marketplace
+                  </button>
+                </div>
+              )}
+              
+              {viewMode === 'admin' && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Add Product
+                </button>
+              )}
             </div>
           </div>
           <div className="flex flex-wrap gap-3 py-4 border-t border-gray-200">
@@ -1375,6 +1502,33 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* User Authentication Modals */}
+        {showUserLogin && (
+          <UserLogin
+            onSuccess={handleUserLogin}
+            onCancel={() => setShowUserLogin(false)}
+            onSwitchToRegister={() => {
+              setShowUserLogin(false)
+              setShowUserRegister(true)
+            }}
+          />
+        )}
+
+        {showUserRegister && (
+          <UserRegistration
+            onSuccess={handleUserRegister}
+            onCancel={() => setShowUserRegister(false)}
+          />
+        )}
+
+        {showLocationPicker && (
+          <LocationPicker
+            onLocationSelect={handleLocationSelect}
+            onCancel={() => setShowLocationPicker(false)}
+            initialLocation={currentUser?.location}
+          />
         )}
       </main>
     </div>
