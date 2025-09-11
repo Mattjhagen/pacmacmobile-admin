@@ -6,6 +6,7 @@ import { PlusIcon, ArrowUpTrayIcon, PhotoIcon, DocumentTextIcon } from '@heroico
 import ProductForm from '@/components/ProductForm'
 import ProductCard from '@/components/ProductCard'
 import ImportModal from '@/components/ImportModal'
+import ProductFilters from '@/components/ProductFilters'
 
 interface Product {
   id: string
@@ -44,6 +45,7 @@ interface ProductTemplate {
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [showForm, setShowForm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -54,6 +56,8 @@ export default function AdminDashboard() {
   const [certValidated, setCertValidated] = useState(false)
   const [certData, setCertData] = useState({ certKey: '', deviceId: '' })
   const [showAutofillSuggestions, setShowAutofillSuggestions] = useState(false)
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'brand'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [autofillSuggestions, setAutofillSuggestions] = useState<ProductTemplate[]>([])
   const [pushingInventory, setPushingInventory] = useState(false)
   const [githubToken, setGithubToken] = useState('')
@@ -351,6 +355,11 @@ export default function AdminDashboard() {
       fetchProducts()
     }
   }, [isAuthenticated])
+
+  // Initialize filtered products when products change
+  useEffect(() => {
+    setFilteredProducts(products)
+  }, [products])
 
   const handleProductCreated = () => {
     setShowForm(false)
@@ -1197,6 +1206,16 @@ export default function AdminDashboard() {
           onImportComplete={handleImportComplete}
         />
 
+        {/* Filters */}
+        {products.length > 0 && (
+          <div className="mb-8">
+            <ProductFilters 
+              products={products}
+              onFiltersChange={setFilteredProducts}
+            />
+          </div>
+        )}
+
         {/* Products Grid */}
         {products.length === 0 ? (
           <div className="text-center py-12">
@@ -1218,15 +1237,85 @@ export default function AdminDashboard() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(products || []).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onEdit={handleEditProduct}
-                onDelete={handleDeleteProduct}
-              />
-            ))}
+          <div>
+            {/* Results Summary */}
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Products ({filteredProducts.length})
+                </h2>
+                {filteredProducts.length !== products.length && (
+                  <span className="text-sm text-gray-500">
+                    of {products.length} total
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Sort by:</span>
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [field, order] = e.target.value.split('-')
+                    setSortBy(field as 'name' | 'price' | 'brand')
+                    setSortOrder(order as 'asc' | 'desc')
+                  }}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="name-asc">Name A-Z</option>
+                  <option value="name-desc">Name Z-A</option>
+                  <option value="price-asc">Price Low-High</option>
+                  <option value="price-desc">Price High-Low</option>
+                  <option value="brand-asc">Brand A-Z</option>
+                  <option value="brand-desc">Brand Z-A</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="mx-auto h-12 w-12 text-gray-400">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No products match your filters</h3>
+                <p className="mt-1 text-sm text-gray-500">Try adjusting your filter criteria.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts
+                  .sort((a, b) => {
+                    let aValue: string | number
+                    let bValue: string | number
+                    
+                    if (sortBy === 'name') {
+                      aValue = a.name.toLowerCase()
+                      bValue = b.name.toLowerCase()
+                    } else if (sortBy === 'price') {
+                      aValue = a.price
+                      bValue = b.price
+                    } else {
+                      aValue = a.brand.toLowerCase()
+                      bValue = b.brand.toLowerCase()
+                    }
+                    
+                    if (sortOrder === 'asc') {
+                      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+                    } else {
+                      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+                    }
+                  })
+                  .map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onEdit={handleEditProduct}
+                      onDelete={handleDeleteProduct}
+                    />
+                  ))}
+              </div>
+            )}
           </div>
         )}
 
