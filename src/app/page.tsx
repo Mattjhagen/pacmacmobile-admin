@@ -930,6 +930,106 @@ export default function AdminDashboard() {
             
             <button
               onClick={async () => {
+                const inventoryData = `Item #	Warehouse	Category	Manufacturer	Model	Grade	Capacity	Carrier	Color	Lock Status	Model Number	Parts Message	Increment Size	Quantity Available	List Price	Transaction Status	Transaction Quantity	Transaction Price	Expires	New Offer Quantity	New Offer Price
+39366	New York	TABLETS	Apple	iPad 10	PLCD	64GB	GSM Unlocked	Mixed	GSM Unlocked	A2757		1	2	115						
+45793	New York	TABLETS	Apple	iPad 11	PLCD	128GB	GSM Unlocked	Mixed	GSM Unlocked	A3355		1	3	210						
+34721	New York	TABLETS	Apple	iPad 8	KFCG	32GB	GSM Unlocked	Grey	GSM Unlocked	A2428		1	4	125						
+67039	New York	TABLETS	Apple	iPad 8	PCG	32GB	GSM Unlocked	Silver	GSM Unlocked	A2428		1	1	90						
+65529	New York	TABLETS	Apple	iPad 8	PLB	32GB	GSM Unlocked	Grey	GSM Unlocked	A2428		1	2	105						
+60778S	New York	TABLETS	Apple	iPad 8	PGL	128GB	GSM Unlocked	Silver	GSM Unlocked	A2428		1	1	125						
+67027	New York	TABLETS	Apple	iPad 9	PCG	64GB	WiFi	Grey		A2602		1	1	100						
+60765GY	New York	TABLETS	Apple	iPad 9	PGL	64GB	WiFi	Grey		A2602		1	5	110						
+45031	New York	TABLETS	Apple	iPad 9	KFCG	256GB	WiFi	Grey		A2602		1	1	155						
+60766S	New York	TABLETS	Apple	iPad 9	PGL	256GB	WiFi	Silver		A2602		1	1	125`
+                
+                try {
+                  const response = await fetch('/api/bulk-import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      inventoryData: inventoryData,
+                      testMode: true
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`🎉 SUCCESS: Bulk import completed!\n\n📊 Results:\n• Total items: ${result.details.totalItems}\n• Processed: ${result.details.processedItems}\n• Successfully imported: ${result.details.successfulImports}\n• Errors: ${result.details.errors}\n\n✅ Test mode - imported first 10 items\n\nProducts are now available in your inventory!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              📦 BULK IMPORT (TEST)
+            </button>
+            
+            <button
+              onClick={async () => {
+                const fullInventoryData = `Item #	Warehouse	Category	Manufacturer	Model	Grade	Capacity	Carrier	Color	Lock Status	Model Number	Parts Message	Increment Size	Quantity Available	List Price	Transaction Status	Transaction Quantity	Transaction Price	Expires	New Offer Quantity	New Offer Price
+39366	New York	TABLETS	Apple	iPad 10	PLCD	64GB	GSM Unlocked	Mixed	GSM Unlocked	A2757		1	2	115						
+45793	New York	TABLETS	Apple	iPad 11	PLCD	128GB	GSM Unlocked	Mixed	GSM Unlocked	A3355		1	3	210						
+34721	New York	TABLETS	Apple	iPad 8	KFCG	32GB	GSM Unlocked	Grey	GSM Unlocked	A2428		1	4	125						
+67039	New York	TABLETS	Apple	iPad 8	PCG	32GB	GSM Unlocked	Silver	GSM Unlocked	A2428		1	1	90						
+65529	New York	TABLETS	Apple	iPad 8	PLB	32GB	GSM Unlocked	Grey	GSM Unlocked	A2428		1	2	105						
+60778S	New York	TABLETS	Apple	iPad 8	PGL	128GB	GSM Unlocked	Silver	GSM Unlocked	A2428		1	1	125						
+67027	New York	TABLETS	Apple	iPad 9	PCG	64GB	WiFi	Grey		A2602		1	1	100						
+60765GY	New York	TABLETS	Apple	iPad 9	PGL	64GB	WiFi	Grey		A2602		1	5	110						
+45031	New York	TABLETS	Apple	iPad 9	KFCG	256GB	WiFi	Grey		A2602		1	1	155						
+60766S	New York	TABLETS	Apple	iPad 9	PGL	256GB	WiFi	Silver		A2602		1	1	125						
+6767GY	New York	TABLETS	Apple	iPad 9	PGL	256GB	WiFi	Grey		A2602		1	1	125						
+67024	New York	TABLETS	Apple	iPad 9	PLB	256GB	WiFi	Grey		A2602		1	1	115						
+45023	New York	TABLETS	Apple	iPad Pro 3 12.9-inch	C-Stock	64GB	WiFi	Grey		A1876		1	1	330						
+45021	New York	TABLETS	Apple	iPad Pro 3 12.9-inch	KFCG	64GB	WiFi	Grey		A1876		1	1	310						
+45022	New York	TABLETS	Apple	iPad Pro 3 12.9-inch	KFLB	64GB	WiFi	Grey		A1876		1	4	310						
+67026	New York	TABLETS	Apple	iPad Pro 3 12.9-inch	PLB	64GB	WiFi	Grey		A1876		1	1	260						
+27880	New York	PHONES	Apple	iPhone 11	A1-Stock	64GB	GSM Unlocked	Red	GSM Unlocked	A2111		1	1	185						
+27876	New York	PHONES	Apple	iPhone 11	A1-Stock	64GB	GSM Unlocked	Purple	GSM Unlocked	A2111		1	1	185						
+27875	New York	PHONES	Apple	iPhone 11	A1-Stock	64GB	GSM Unlocked	White	GSM Unlocked	A2111		1	2	185						
+27881	New York	PHONES	Apple	iPhone 11	A2-Stock	64GB	GSM Unlocked	Red	GSM Unlocked	A2111		1	4	175						
+27877	New York	PHONES	Apple	iPhone 11	A2-Stock	64GB	GSM Unlocked	Purple	GSM Unlocked	A2111		1	10	175						
+27868	New York	PHONES	Apple	iPhone 11	A2-Stock	64GB	GSM Unlocked	White	GSM Unlocked	A2111		1	20	175						
+30584	New York	PHONES	Apple	iPhone 11	B1-Stock	64GB	GSM Unlocked	White	GSM Unlocked	A2111		1	100+	165						
+30572	New York	PHONES	Apple	iPhone 11	B1-Stock	64GB	GSM Unlocked	Purple	GSM Unlocked	A2111		1	38	165						
+30577	New York	PHONES	Apple	iPhone 11	B1-Stock	64GB	GSM Unlocked	Red	GSM Unlocked	A2111		1	23	165						
+46001	New York	PHONES	Apple	iPhone 11	CPC-Stock	64GB	GSM Unlocked	Black	GSM Unlocked	A2111		1	100+	150						
+46006	New York	PHONES	Apple	iPhone 11	CPC-Stock	64GB	GSM Unlocked	Green	GSM Unlocked	A2111		1	100+	150						
+46027	New York	PHONES	Apple	iPhone 11	CPC-Stock	64GB	GSM Unlocked	Purple	GSM Unlocked	A2111		1	100+	150						
+46030	New York	PHONES	Apple	iPhone 11	CPC-Stock	64GB	GSM Unlocked	Red	GSM Unlocked	A2111		1	24	150						
+46037	New York	PHONES	Apple	iPhone 11	CPC-Stock	64GB	GSM Unlocked	White	GSM Unlocked	A2111		1	100+	150`
+                
+                if (!confirm('🚨 FULL BULK IMPORT WARNING 🚨\n\nThis will import ALL products from your inventory data.\n\n⚠️ This may take several minutes to complete.\n⚠️ Images will be fetched from the web for each product.\n⚠️ This will add hundreds of products to your inventory.\n\nAre you sure you want to continue?')) {
+                  return
+                }
+                
+                try {
+                  const response = await fetch('/api/bulk-import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      inventoryData: fullInventoryData,
+                      testMode: false
+                    })
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    alert(`🎉 SUCCESS: Full bulk import completed!\n\n📊 Results:\n• Total items: ${result.details.totalItems}\n• Processed: ${result.details.processedItems}\n• Successfully imported: ${result.details.successfulImports}\n• Errors: ${result.details.errors}\n\n✅ All products imported with web images!\n\nProducts are now available in your inventory!`)
+                  } else {
+                    alert(`❌ FAILED: ${result.error || 'Unknown error'}`)
+                  }
+                } catch (error) {
+                  alert(`❌ ERROR: ${error}`)
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              🚀 FULL BULK IMPORT
+            </button>
+            
+            <button
+              onClick={async () => {
                 try {
                   const response = await fetch('/api/fix-main-site-js', {
                     method: 'POST',
