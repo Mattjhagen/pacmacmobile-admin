@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js';
+// Temporarily disabled Stripe imports due to compatibility issues
+// import { loadStripe } from '@stripe/stripe-js';
+// import {
+//   Elements,
+//   CardElement,
+//   useStripe,
+//   useElements
+// } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PaymentFormProps {
   amount: number;
@@ -19,74 +20,82 @@ interface PaymentFormProps {
 }
 
 function PaymentForm({ amount, onSuccess, onError, metadata }: PaymentFormProps) {
-  const stripe = useStripe();
-  const elements = useElements();
+  // const stripe = useStripe();
+  // const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    // Temporarily disabled Stripe functionality
+    setError('Payment functionality is temporarily disabled for maintenance.');
+    onError('Payment functionality is temporarily disabled for maintenance.');
+    return;
 
-    if (!stripe || !elements) {
-      return;
-    }
+    // if (!stripe || !elements) {
+    //   return;
+    // }
 
-    setLoading(true);
-    setError(null);
+    // setLoading(true);
+    // setError(null);
 
-    try {
-      // Create payment intent
-      const response = await fetch('/api/stripe/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount,
-          currency: 'usd',
-          metadata: {
-            ...metadata,
-            timestamp: new Date().toISOString(),
-          },
-        }),
-      });
+    // try {
+    //   // Create payment intent
+    //   const response = await fetch('/api/stripe/create-payment-intent', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       amount,
+    //       currency: 'usd',
+    //       metadata: {
+    //         ...metadata,
+    //         timestamp: new Date().toISOString(),
+    //       },
+    //     }),
+    //   });
 
-      const { clientSecret, error: apiError } = await response.json();
+    //   const { clientSecret, error: apiError } = await response.json();
 
-      if (apiError) {
-        throw new Error(apiError);
-      }
+    //   if (apiError) {
+    //     throw new Error(apiError);
+    //   }
 
-      // Confirm payment
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        clientSecret,
-        {
-          payment_method: {
-            card: elements.getElement(CardElement)!,
-          },
-        }
-      );
+    //   // Confirm payment
+    //   const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+    //     clientSecret,
+    //     {
+    //       payment_method: {
+    //         card: elements.getElement(CardElement)!,
+    //       },
+    //     }
+    //   );
 
-      if (stripeError) {
-        throw new Error(stripeError.message);
-      }
+    //   if (stripeError) {
+    //     throw new Error(stripeError.message);
+    //   }
 
-      if (paymentIntent.status === 'succeeded') {
-        onSuccess(paymentIntent);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Payment failed';
-      setError(errorMessage);
-      onError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    //   if (paymentIntent.status === 'succeeded') {
+    //     onSuccess(paymentIntent);
+    //   }
+    // } catch (err) {
+    //   const errorMessage = err instanceof Error ? err.message : 'Payment failed';
+    //   setError(errorMessage);
+    //   onError(errorMessage);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="p-4 border border-gray-300 rounded-lg">
-        <CardElement
+        <div className="text-gray-500 text-center py-8">
+          Payment form temporarily disabled for maintenance
+        </div>
+        {/* <CardElement
           options={{
             style: {
               base: {
@@ -101,7 +110,7 @@ function PaymentForm({ amount, onSuccess, onError, metadata }: PaymentFormProps)
               },
             },
           }}
-        />
+        /> */}
       </div>
       
       {error && (
@@ -112,10 +121,10 @@ function PaymentForm({ amount, onSuccess, onError, metadata }: PaymentFormProps)
       
       <button
         type="submit"
-        disabled={!stripe || loading}
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={true}
+        className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed"
       >
-        {loading ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+        Payment Disabled
       </button>
     </form>
   );
@@ -130,13 +139,19 @@ interface StripePaymentProps {
 
 export default function StripePayment({ amount, onSuccess, onError, metadata }: StripePaymentProps) {
   return (
-    <Elements stripe={stripePromise}>
-      <PaymentForm
-        amount={amount}
-        onSuccess={onSuccess}
-        onError={onError}
-        metadata={metadata}
-      />
-    </Elements>
+    <PaymentForm
+      amount={amount}
+      onSuccess={onSuccess}
+      onError={onError}
+      metadata={metadata}
+    />
+    // <Elements stripe={stripePromise}>
+    //   <PaymentForm
+    //     amount={amount}
+    //     onSuccess={onSuccess}
+    //     onError={onError}
+    //     metadata={metadata}
+    //   />
+    // </Elements>
   );
 }
