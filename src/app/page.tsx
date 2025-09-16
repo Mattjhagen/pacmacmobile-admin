@@ -14,6 +14,8 @@ import IntroSplash from '@/components/IntroSplash'
 import FeatureShowcase from '@/components/FeatureShowcase'
 import WelcomeDashboard from '@/components/WelcomeDashboard'
 import CheckoutModal from '@/components/CheckoutModal'
+import GitHubMCPInterface from '@/components/GitHubMCPInterface'
+import OAuthSplashScreen from '@/components/OAuthSplashScreen'
 
 interface Product {
   id: string
@@ -101,6 +103,12 @@ export default function AdminDashboard() {
   const [hasSeenIntro, setHasSeenIntro] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
   const [cart, setCart] = useState<{ id: string; name: string; price: number; qty: number }[]>([])
+  const [showGitHubMCP, setShowGitHubMCP] = useState(false)
+  
+  // OAuth Authentication State
+  const [isOAuthAuthenticated, setIsOAuthAuthenticated] = useState(false)
+  const [oauthUser, setOauthUser] = useState<any>(null)
+  const [showOAuthSplash, setShowOAuthSplash] = useState(true)
 
   // Autofill system with product templates
   const productTemplates = {
@@ -509,6 +517,21 @@ export default function AdminDashboard() {
     // You can add success notification here
   }
 
+  // OAuth Authentication Handlers
+  const handleOAuthSuccess = (user: any, token: string) => {
+    setOauthUser(user)
+    setIsOAuthAuthenticated(true)
+    setShowOAuthSplash(false)
+    console.log('OAuth authentication successful:', user)
+  }
+
+  const handleOAuthLogout = () => {
+    setOauthUser(null)
+    setIsOAuthAuthenticated(false)
+    setShowOAuthSplash(true)
+    console.log('OAuth logout successful')
+  }
+
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
     setShowForm(true)
@@ -764,6 +787,18 @@ export default function AdminDashboard() {
     }
   }
 
+  // OAuth Splash Screen - Show by default
+  if (showOAuthSplash) {
+    return (
+      <OAuthSplashScreen
+        onAuthSuccess={handleOAuthSuccess}
+        onLogout={handleOAuthLogout}
+        isAuthenticated={isOAuthAuthenticated}
+        currentUser={oauthUser}
+      />
+    )
+  }
+
   // Certificate validation screen
   if (!certValidated) {
     return (
@@ -902,6 +937,27 @@ export default function AdminDashboard() {
             </div>
             
             <div className="flex items-center gap-4">
+              {/* OAuth User Display */}
+              {isOAuthAuthenticated && oauthUser && (
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={oauthUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(oauthUser.name)}&background=3b82f6&color=fff`}
+                    alt={oauthUser.name}
+                    className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                  />
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900">{oauthUser.name}</div>
+                    <div className="text-gray-500">@{oauthUser.login}</div>
+                  </div>
+                  <button
+                    onClick={handleOAuthLogout}
+                    className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+              
               {currentUser ? (
                 <div className="flex items-center space-x-4">
                   {/* User Location Display */}
@@ -958,13 +1014,20 @@ export default function AdminDashboard() {
               )}
               
               {viewMode === 'admin' && (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                >
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                  Add Product
-                </button>
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add Product
+              </button>
+              <button
+                onClick={() => setShowGitHubMCP(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <span className="mr-2">🔗</span>
+                GitHub MCP
+              </button>
               )}
             </div>
           </div>
@@ -1660,6 +1723,27 @@ export default function AdminDashboard() {
           cartItems={cart}
           onPaymentSuccess={handleCheckoutSuccess}
         />
+
+        {/* GitHub MCP Modal */}
+        {showGitHubMCP && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-10 mx-auto p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">GitHub MCP Server</h2>
+                <button
+                  onClick={() => setShowGitHubMCP(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <GitHubMCPInterface />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
